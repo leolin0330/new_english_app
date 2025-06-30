@@ -1,10 +1,12 @@
-import datetime  # ✅ 加上這行
-
+import datetime
 import streamlit as st
 from google.oauth2.service_account import Credentials
 import gspread
 
-scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+scope = [
+    "https://spreadsheets.google.com/feeds",
+    "https://www.googleapis.com/auth/drive"
+]
 
 info = st.secrets["google_service_account"].copy()
 info["private_key"] = info["private_key"].replace("\\n", "\n")
@@ -14,7 +16,7 @@ client = gspread.authorize(credentials)
 spreadsheet = client.open("打卡紀錄")
 sheet = spreadsheet.sheet1
 
-# Streamlit UI
+# UI
 st.set_page_config(page_title="線上打卡系統", page_icon="🕘")
 st.title("🕘 線上打卡系統（雲端 Google Sheets 版）")
 
@@ -23,6 +25,6 @@ if st.button("✅ 我要打卡"):
     if name.strip() == "":
         st.warning("⚠️ 請輸入有效的名字")
     else:
-        now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")  # ✅ 注意這裡要寫 datetime.datetime
+        now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         sheet.append_row([name, now])
         st.success(f"🎉 打卡成功！時間：{now}")
