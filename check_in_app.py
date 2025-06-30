@@ -32,6 +32,7 @@ if not st.session_state["logged_in"]:
             st.session_state["logged_in"] = True
             st.session_state["username"] = username
             st.success("✅ 登入成功")
+            st.experimental_rerun()  # 重新整理頁面，立即切換到打卡畫面
         else:
             st.error("❌ 帳號或密碼錯誤")
     st.stop()  # 停止後面顯示
