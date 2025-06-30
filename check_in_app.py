@@ -1,14 +1,14 @@
 import streamlit as st
-from datetime import datetime
+from google.oauth2.service_account import Credentials
 import gspread
-from oauth2client.service_account import ServiceAccountCredentials
 
-# 設定 Google Sheets API 權限
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-creds = ServiceAccountCredentials.from_json_keyfile_dict(st.secrets["google_service_account"], scope)
-client = gspread.authorize(creds)
 
-# 開啟 Google Sheets（請確認名稱與你雲端試算表一致）
+credentials = Credentials.from_service_account_info(
+    st.secrets["google_service_account"], scopes=scope
+)
+client = gspread.authorize(credentials)
+
 spreadsheet = client.open("打卡紀錄")
 sheet = spreadsheet.sheet1
 
