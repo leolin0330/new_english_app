@@ -4,11 +4,11 @@ import gspread
 
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 
-credentials = Credentials.from_service_account_info(
-    st.secrets["google_service_account"], scopes=scope
-)
-client = gspread.authorize(credentials)
+info = st.secrets["google_service_account"].copy()
+info["private_key"] = info["private_key"].replace("\\n", "\n")
 
+credentials = Credentials.from_service_account_info(info, scopes=scope)
+client = gspread.authorize(credentials)
 spreadsheet = client.open("打卡紀錄")
 sheet = spreadsheet.sheet1
 
