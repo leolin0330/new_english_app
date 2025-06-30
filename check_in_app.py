@@ -1,7 +1,7 @@
 import streamlit as st
 from google.oauth2.service_account import Credentials
 import gspread
-from datetime import datetime
+from datetime import datetime, timedelta
 
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 
@@ -21,8 +21,8 @@ if st.button("✅ 我要打卡"):
     if name.strip() == "":
         st.warning("⚠️ 請輸入有效的名字")
     else:
-        now = datetime.now()
-        date = now.strftime("%Y-%m-%d")
+        now = datetime.utcnow() + timedelta(hours=8)  # 台灣時區
+        date = now.strftime("%Y/%m/%d")
         time = now.strftime("%H:%M:%S")
         sheet.append_row([name, date, time])
         st.success(f"🎉 打卡成功！時間：{date} {time}")
