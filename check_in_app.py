@@ -5,8 +5,8 @@ from datetime import datetime
 
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 
-info = st.secrets["google_service_account"].copy()
-info["private_key"] = info["private_key"].replace("\\n", "\n")
+info = dict(st.secrets["google_service_account"])
+# info["private_key"] = info["private_key"].replace("\\n", "\n")
 
 credentials = Credentials.from_service_account_info(info, scopes=scope)
 client = gspread.authorize(credentials)
