@@ -21,6 +21,7 @@ if st.button("✅ 我要打卡"):
     if name.strip() == "":
         st.warning("⚠️ 請輸入有效的名字")
     else:
-        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        sheet.append_row([name, now])
-        st.success(f"🎉 打卡成功！時間：{now}")
+        date = datetime.now().strftime("%Y-%m-%d")
+        time = datetime.now().strftime("%H:%M:%S")
+        sheet.append_row([name, date , time])
+        st.success(f"🎉 打卡成功！時間：{date}{time}")
