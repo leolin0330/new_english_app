@@ -65,6 +65,8 @@ try:
         if user_df.empty:
             st.info("❗你尚未打過卡。")
         else:
-            st.table(user_df.tail(10))  # 顯示最近 10 筆
+            user_df = user_df.tail(10).reset_index(drop=True)
+            user_df.index += 1  # 顯示從 1 開始
+            st.table(user_df)
 except Exception as e:
     st.error(f"❌ 無法讀取打卡資料：{e}")
