@@ -61,7 +61,7 @@ try:
     else:
         header, *rows = records
         df = pd.DataFrame(rows, columns=header)
-        user_df = df[df["帳號"] == st.session_state["username"]]
+        user_df = df[df["姓名"] == st.session_state["username"]]
         if user_df.empty:
             st.info("❗你尚未打過卡。")
         else:
