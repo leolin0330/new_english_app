@@ -46,3 +46,20 @@ if st.button("✅ 我要打卡"):
     time = now.strftime("%H:%M:%S")
     sheet.append_row([st.session_state["username"], date, time])
     st.success(f"🎉 打卡成功！時間：{date} {time}")
+
+# ====== 歷史紀錄顯示 ======
+st.subheader("📜 我的歷史打卡紀錄")
+
+# 抓整張打卡資料
+records = sheet.get_all_values()  # [['帳號', '日期', '時間'], ...]
+header, *rows = records
+
+# 篩選出目前登入者的紀錄
+user_records = [row for row in rows if row[0] == st.session_state["username"]]
+
+# 顯示最近10筆
+if user_records:
+    recent_records = user_records[-10:]  # 取最後10筆
+    st.table(recent_records)
+else:
+    st.info("目前尚無打卡紀錄。")
