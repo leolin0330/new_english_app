@@ -2,6 +2,7 @@ import streamlit as st
 from datetime import datetime, timedelta
 from google.oauth2.service_account import Credentials
 import gspread
+import pandas as pd
 
 # ====== Google Sheets 認證區 ======
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
@@ -11,19 +12,20 @@ client = gspread.authorize(credentials)
 spreadsheet = client.open("打卡紀錄")
 sheet = spreadsheet.sheet1
 
-# ====== 登入區 ======
+# ====== Streamlit 頁面設定 ======
 st.set_page_config(page_title="線上打卡系統", page_icon="🕘")
 st.title("🔐 登入打卡系統")
 
-# 載入帳密
+# ====== 使用者帳密載入 ======
 users = st.secrets["users"]
 
-# 建立 session 狀態
+# ====== Session 狀態 ======
 if "logged_in" not in st.session_state:
     st.session_state["logged_in"] = False
 if "username" not in st.session_state:
     st.session_state["username"] = ""
 
+# ====== 登入畫面 ======
 if not st.session_state["logged_in"]:
     username = st.text_input("帳號")
     password = st.text_input("密碼", type="password")
@@ -32,12 +34,13 @@ if not st.session_state["logged_in"]:
             st.session_state["logged_in"] = True
             st.session_state["username"] = username
             st.success("✅ 登入成功")
-            st.rerun()  # 重新整理頁面，立即切換到打卡畫面
+            st.rerun()
         else:
             st.error("❌ 帳號或密碼錯誤")
-    st.stop()  # 停止後面顯示
-else:
-    st.success(f"👋 歡迎回來：{st.session_state['username']}")
+    st.stop()
+
+# ====== 已登入畫面 ======
+st.success(f"👋 歡迎回來：{st.session_state['username']}")
 
 # ====== 打卡功能 ======
 if st.button("✅ 我要打卡"):
@@ -46,20 +49,22 @@ if st.button("✅ 我要打卡"):
     time = now.strftime("%H:%M:%S")
     sheet.append_row([st.session_state["username"], date, time])
     st.success(f"🎉 打卡成功！時間：{date} {time}")
+    st.rerun()  # 打卡後刷新頁面顯示最新資料
 
 # ====== 歷史紀錄顯示 ======
 st.subheader("📜 我的歷史打卡紀錄")
 
-# 抓整張打卡資料
-records = sheet.get_all_values()  # [['帳號', '日期', '時間'], ...]
-header, *rows = records
-
-# 篩選出目前登入者的紀錄
-user_records = [row for row in rows if row[0] == st.session_state["username"]]
-
-# 顯示最近10筆
-if user_records:
-    recent_records = user_records[-10:]  # 取最後10筆
-    st.table(recent_records)
-else:
-    st.info("目前尚無打卡紀錄。")
+try:
+    records = sheet.get_all_values()  # [['帳號', '日期', '時間'], ...]
+    if len(records) <= 1:
+        st.info("⚠️ 尚無任何打卡資料。")
+    else:
+        header, *rows = records
+        df = pd.DataFrame(rows, columns=header)
+        user_df = df[df["帳號"] == st.session_state["username"]]
+        if user_df.empty:
+            st.info("❗你尚未打過卡。")
+        else:
+            st.table(user_df.tail(10))  # 顯示最近 10 筆
+except Exception as e:
+    st.error(f"❌ 無法讀取打卡資料：{e}")
