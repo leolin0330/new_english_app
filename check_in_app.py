@@ -61,7 +61,7 @@ st.subheader("📜 我的歷史打卡紀錄（可選月份）")
 
 # 選單：顯示可用的月份頁籤（從 Google Sheets 抓取所有工作表名稱）
 available_sheets = [ws.title for ws in spreadsheet.worksheets() if ws.title.isdigit()]
-available_sheets.sort(reverse=True)  # 最近的在最上面
+available_sheets.sort(reverse=False)  # 最近的在最上面
 
 selected_month = st.selectbox("請選擇要查看的月份：", available_sheets)
 
