@@ -63,7 +63,18 @@ st.subheader("📜 我的歷史打卡紀錄（可選月份）")
 available_sheets = [ws.title for ws in spreadsheet.worksheets() if ws.title.isdigit()]
 available_sheets.sort(reverse=False)
 
-selected_month = st.selectbox("請選擇要查看的月份：", available_sheets)
+# 加入預設選擇：本月
+current_month = datetime.utcnow() + timedelta(hours=8)
+current_sheet = current_month.strftime("%Y%m")
+
+# 如果本月存在於 available_sheets 中，就預設選取
+if current_sheet in available_sheets:
+    default_index = available_sheets.index(current_sheet)
+else:
+    default_index = 0  # fallback：選第一個
+
+
+selected_month = st.selectbox("請選擇要查看的月份：", available_sheets, index=default_index)
 
 try:
     sheet = spreadsheet.worksheet(selected_month)  # 查詢時不自動建立
