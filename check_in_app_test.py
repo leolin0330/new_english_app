@@ -11,15 +11,13 @@ credentials = Credentials.from_service_account_info(info, scopes=scope)
 client = gspread.authorize(credentials)
 spreadsheet = client.open("打卡紀錄")
 
-# --- 輔助函式：根據時間抓對月份的 sheet ---
+# --- 打卡專用：自動建立工作表（如果沒有） ---
 def get_sheet_for(dt):
     sheet_name = dt.strftime("%Y%m")
     try:
         return spreadsheet.worksheet(sheet_name)
     except gspread.exceptions.WorksheetNotFound:
-        # 沒有該月份工作表，新增一個並設定標題欄位
         worksheet = spreadsheet.add_worksheet(title=sheet_name, rows=1000, cols=3)
-        # 設定標題欄位（你打卡紀錄的標題，假設是這三欄）
         worksheet.append_row(["姓名", "日期", "時間"])
         return worksheet
 
@@ -54,7 +52,7 @@ if st.button("✅ 我要打卡"):
     now = datetime.utcnow() + timedelta(hours=8)
     date = now.strftime("%Y/%m/%d")
     time = now.strftime("%H:%M:%S")
-    sheet = get_sheet_for(now)
+    sheet = get_sheet_for(now)  # 自動建立工作表
     sheet.append_row([st.session_state["username"], date, time])
     st.success(f"🎉 打卡成功！時間：{date} {time}")
     st.rerun()
@@ -62,14 +60,13 @@ if st.button("✅ 我要打卡"):
 # --- 顯示歷史打卡紀錄（可選月份） ---
 st.subheader("📜 我的歷史打卡紀錄（可選月份）")
 
-# 選單：顯示可用的月份頁籤（從 Google Sheets 抓取所有工作表名稱）
 available_sheets = [ws.title for ws in spreadsheet.worksheets() if ws.title.isdigit()]
-available_sheets.sort(reverse=False)  # 最近的在最上面
+available_sheets.sort(reverse=False)
 
 selected_month = st.selectbox("請選擇要查看的月份：", available_sheets)
 
 try:
-    sheet = spreadsheet.worksheet(selected_month)
+    sheet = spreadsheet.worksheet(selected_month)  # 查詢時不自動建立
     records = sheet.get_all_values()
 
     if len(records) <= 1:
@@ -89,13 +86,13 @@ try:
         if user_df.empty:
             st.info("❗你在這個月份尚未打過卡。")
         else:
-            # 日期 + 時間合併成 datetime 並排序
             user_df["打卡時間"] = pd.to_datetime(user_df["日期"] + " " + user_df["時間"], format="%Y/%m/%d %H:%M:%S")
             user_df = user_df.sort_values(by="打卡時間", ascending=True)
             user_df = user_df.head(10).reset_index(drop=True)
             user_df.index += 1
 
             st.table(user_df.drop(columns=["打卡時間"]))
+except gspread.exceptions.WorksheetNotFound:
+    st.error(f"❌ 找不到對應月份的工作表：{selected_month}")
 except Exception as e:
     st.error(f"❌ 無法讀取打卡資料：{e}")
-
