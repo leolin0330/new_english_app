@@ -22,7 +22,7 @@ def get_sheet_for(dt):
 
 # --- Streamlit 設定 ---
 st.set_page_config(page_title="線上打卡系統", page_icon="🕘")
-st.title("🔐 登入打卡系統")
+st.title("🔐 登入打卡系統(測試區)")
 users = st.secrets["users"]
 
 if "logged_in" not in st.session_state:
@@ -56,24 +56,43 @@ if st.button("✅ 我要打卡"):
     st.success(f"🎉 打卡成功！時間：{date} {time}")
     st.rerun()
 
-# --- 顯示本月歷史打卡紀錄 ---
-st.subheader("📜 我的歷史打卡紀錄（本月）")
-now = datetime.utcnow() + timedelta(hours=8)
-sheet = get_sheet_for(now)
+# --- 顯示歷史打卡紀錄（可選月份） ---
+st.subheader("📜 我的歷史打卡紀錄（可選月份）")
+
+# 選單：顯示可用的月份頁籤（從 Google Sheets 抓取所有工作表名稱）
+available_sheets = [ws.title for ws in spreadsheet.worksheets() if ws.title.isdigit()]
+available_sheets.sort(reverse=True)  # 最近的在最上面
+
+selected_month = st.selectbox("請選擇要查看的月份：", available_sheets)
 
 try:
+    sheet = spreadsheet.worksheet(selected_month)
     records = sheet.get_all_values()
+
     if len(records) <= 1:
-        st.info("⚠️ 本月尚無任何打卡資料。")
+        st.info("⚠️ 選擇的月份尚無任何打卡資料。")
     else:
         header, *rows = records
         df = pd.DataFrame(rows, columns=header)
-        user_df = df[df["姓名"] == st.session_state["username"]]
-        if user_df.empty:
-            st.info("❗你本月尚未打過卡。")
+
+        if "帳號" in df.columns:
+            user_df = df[df["帳號"] == st.session_state["username"]]
+        elif "姓名" in df.columns:
+            user_df = df[df["姓名"] == st.session_state["username"]]
         else:
-            user_df = user_df.tail(10).reset_index(drop=True)
+            st.warning("⚠️ 此表單缺少正確的使用者欄位（帳號或姓名）")
+            st.stop()
+
+        if user_df.empty:
+            st.info("❗你在這個月份尚未打過卡。")
+        else:
+            # 日期 + 時間合併成 datetime 並排序
+            user_df["打卡時間"] = pd.to_datetime(user_df["日期"] + " " + user_df["時間"], format="%Y/%m/%d %H:%M:%S")
+            user_df = user_df.sort_values(by="打卡時間", ascending=True)
+            user_df = user_df.head(10).reset_index(drop=True)
             user_df.index += 1
-            st.table(user_df)
+
+            st.table(user_df.drop(columns=["打卡時間"]))
 except Exception as e:
     st.error(f"❌ 無法讀取打卡資料：{e}")
+
