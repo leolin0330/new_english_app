@@ -58,9 +58,17 @@ if st.button("✅ 我要打卡"):
     now = datetime.utcnow() + timedelta(hours=8)  # 台灣時間
     date = now.strftime("%Y/%m/%d")
     time = now.strftime("%H:%M:%S")
+    sheet_name = now.strftime("%Y%m")  # 根據打卡時間選擇表單
+
+    try:
+        sheet = spreadsheet.worksheet(sheet_name)
+    except gspread.exceptions.WorksheetNotFound:
+        st.error(f"❌ 找不到工作表：{sheet_name}，請確認該月份工作表是否存在。")
+        st.stop()
+
     sheet.append_row([st.session_state["username"], date, time])
     st.success(f"🎉 打卡成功！時間：{date} {time}")
-    st.rerun()  # 打卡後刷新頁面顯示最新資料
+    st.rerun()
 
 # ====== 歷史紀錄顯示 ======
 st.subheader("📜 我的歷史打卡紀錄")
