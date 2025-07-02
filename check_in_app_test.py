@@ -88,7 +88,7 @@ try:
         else:
             # 日期 + 時間合併成 datetime 並排序
             user_df["打卡時間"] = pd.to_datetime(user_df["日期"] + " " + user_df["時間"], format="%Y/%m/%d %H:%M:%S")
-            user_df = user_df.sort_values(by="打卡時間", ascending=False)
+            user_df = user_df.sort_values(by="打卡時間", ascending=True)
             user_df = user_df.head(10).reset_index(drop=True)
             user_df.index += 1
 
