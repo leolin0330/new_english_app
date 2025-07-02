@@ -17,8 +17,11 @@ def get_sheet_for(dt):
     try:
         return spreadsheet.worksheet(sheet_name)
     except gspread.exceptions.WorksheetNotFound:
-        st.error(f"❌ 找不到對應月份的工作表：{sheet_name}")
-        st.stop()
+        # 沒有該月份工作表，新增一個並設定標題欄位
+        worksheet = spreadsheet.add_worksheet(title=sheet_name, rows=1000, cols=3)
+        # 設定標題欄位（你打卡紀錄的標題，假設是這三欄）
+        worksheet.append_row(["姓名", "日期", "時間"])
+        return worksheet
 
 # --- Streamlit 設定 ---
 st.set_page_config(page_title="線上打卡系統", page_icon="🕘")
