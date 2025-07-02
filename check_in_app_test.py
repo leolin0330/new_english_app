@@ -17,7 +17,7 @@ def get_sheet_for(dt):
     try:
         return spreadsheet.worksheet(sheet_name)
     except gspread.exceptions.WorksheetNotFound:
-        worksheet = spreadsheet.add_worksheet(title=sheet_name, rows=1000, cols=3)
+        worksheet = spreadsheet.add_worksheet(title=sheet_name, rows=1000, cols=10)
         worksheet.append_row(["姓名", "日期", "時間"])
         return worksheet
 
