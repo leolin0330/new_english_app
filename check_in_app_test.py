@@ -8,14 +8,14 @@ import pandas as pd
 if "language" not in st.session_state:
     st.session_state["language"] = "中文"
 
-# 模擬右上角語言按鈕排版
-col1, col2, col3, col4, col5 = st.columns([[10, 1, 1]])
-with col5:
+# 調整：右邊靠邊顯示按鈕
+col1, col2, col3 = st.columns([10, 1, 1])
+with col3:
     if st.session_state["language"] != "中文":
         if st.button("中文"):
             st.session_state["language"] = "中文"
             st.rerun()
-with col4:
+with col2:
     if st.session_state["language"] != "English":
         if st.button("English"):
             st.session_state["language"] = "English"
