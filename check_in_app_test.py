@@ -4,13 +4,24 @@ from google.oauth2.service_account import Credentials
 import gspread
 import pandas as pd
 
-# --- 語言切換功能 ---
+# --- 語言切換按鈕（模擬右上角） ---
 if "language" not in st.session_state:
     st.session_state["language"] = "中文"
 
-lang = st.selectbox("🌐 Language 語言", ["中文", "English"])
-st.session_state["language"] = lang
+# 模擬右上角語言按鈕排版
+col1, col2, col3, col4, col5 = st.columns([7, 1, 1, 1, 1])
+with col5:
+    if st.session_state["language"] != "中文":
+        if st.button("中文"):
+            st.session_state["language"] = "中文"
+            st.rerun()
+with col4:
+    if st.session_state["language"] != "English":
+        if st.button("English"):
+            st.session_state["language"] = "English"
+            st.rerun()
 
+# --- 語系文字 ---
 text = {
     "中文": {
         "title": "🔐 登入打卡系統(測試區)",
@@ -50,6 +61,10 @@ text = {
     }
 }[st.session_state["language"]]
 
+# --- Streamlit 頁面設定 ---
+st.set_page_config(page_title=text["title"], page_icon="🕘")
+st.title(text["title"])
+
 # --- Google Sheets 認證 ---
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 info = dict(st.secrets["google_service_account"])
@@ -57,19 +72,7 @@ credentials = Credentials.from_service_account_info(info, scopes=scope)
 client = gspread.authorize(credentials)
 spreadsheet = client.open("打卡紀錄")
 
-# --- 打卡專用：自動建立工作表（如果沒有） ---
-def get_sheet_for(dt):
-    sheet_name = dt.strftime("%Y%m")
-    try:
-        return spreadsheet.worksheet(sheet_name)
-    except gspread.exceptions.WorksheetNotFound:
-        worksheet = spreadsheet.add_worksheet(title=sheet_name, rows=1000, cols=10)
-        worksheet.append_row(["姓名", "日期", "時間"])
-        return worksheet
-
-# --- Streamlit 設定 ---
-st.set_page_config(page_title=text["title"], page_icon="🕘")
-st.title(text["title"])
+# --- 使用者資訊 ---
 users = st.secrets["users"]
 
 if "logged_in" not in st.session_state:
@@ -93,21 +96,31 @@ if not st.session_state["logged_in"]:
 
 st.success(f"{text['welcome']}{st.session_state['username']}")
 
-# --- 打卡功能 ---
+# --- 自動建立當月工作表 ---
+def get_sheet_for(dt):
+    sheet_name = dt.strftime("%Y%m")
+    try:
+        return spreadsheet.worksheet(sheet_name)
+    except gspread.exceptions.WorksheetNotFound:
+        worksheet = spreadsheet.add_worksheet(title=sheet_name, rows=1000, cols=10)
+        worksheet.append_row(["姓名", "日期", "時間"])
+        return worksheet
+
+# --- 打卡按鈕 ---
 if st.button(text["checkin"]):
     now = datetime.utcnow() + timedelta(hours=8)
     date = now.strftime("%Y/%m/%d")
     time = now.strftime("%H:%M:%S")
-    sheet = get_sheet_for(now)  # 自動建立工作表
+    sheet = get_sheet_for(now)
     sheet.append_row([st.session_state["username"], date, time])
     st.success(f"{text['checkin_success']}{date} {time}")
     st.rerun()
 
-# --- 顯示歷史打卡紀錄（可選月份） ---
+# --- 顯示歷史紀錄 ---
 st.subheader(text["history_title"])
 
 available_sheets = [ws.title for ws in spreadsheet.worksheets() if ws.title.isdigit()]
-available_sheets.sort(reverse=False)
+available_sheets.sort()
 
 current_month = datetime.utcnow() + timedelta(hours=8)
 current_sheet = current_month.strftime("%Y%m")
