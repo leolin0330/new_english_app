@@ -26,6 +26,7 @@ is_admin = st.session_state.get("username") == "admin"
 text = {
     "中文": {
         "title": "🔐 管理者介面（打卡系統）" if is_admin else "🔐 登入打卡系統(測試區)",
+        "select_user": "👥 選擇人員",
         "username": "帳號",
         "password": "密碼",
         "login": "登入",
@@ -44,6 +45,7 @@ text = {
     },
     "English": {
         "title": "🔐 Sign-in System (Test Area)",
+        "select_user": "👥 Select User",
         "username": "Username",
         "password": "Password",
         "login": "Login",
@@ -155,7 +157,7 @@ try:
         if is_admin:
             user_list = sorted(df[key_col].unique())
             user_list.insert(0, "全部")  # 在最前面加上「全部」
-            selected_user = st.selectbox("👥 選擇人員", user_list)
+            selected_user = st.selectbox(text["select_user"], user_list)
             if selected_user != "全部":
                 df = df[df[key_col] == selected_user]
         else:
