@@ -7,6 +7,10 @@ import pandas as pd
 # --- 語言切換按鈕（模擬右上角） ---
 if "language" not in st.session_state:
     st.session_state["language"] = "中文"
+if "logged_in" not in st.session_state:
+    st.session_state["logged_in"] = False
+if "username" not in st.session_state:
+    st.session_state["username"] = ""
 
 # 調整：右邊靠邊顯示按鈕
 col1, col2, col3 = st.columns([10, 1, 1])
@@ -22,7 +26,8 @@ with col2:
             st.rerun()
 
 # --- 語系文字 ---
-is_admin = st.session_state.get("username") == "admin"
+is_admin = st.session_state["username"] == "admin"
+
 text = {
     "中文": {
         "title": "🔐 管理者介面（打卡系統）" if is_admin else "🔐 登入打卡系統(測試區)",
@@ -44,7 +49,7 @@ text = {
         "read_error": "❌ 無法讀取打卡資料："
     },
     "English": {
-        "title": "🔐 Sign-in System (Test Area)",
+        "title": "🔐 Admin Panel (Clock-in System)" if is_admin else "🔐 Sign-in System (Test Area)",
         "select_user": "👥 Select User",
         "username": "Username",
         "password": "Password",
