@@ -180,7 +180,7 @@ try:
             user_list = sorted(df[key_col].unique())
             user_list.insert(0, text["all_users_label"])
             selected_user = st.selectbox(text["select_user"], user_list)
-            if selected_user != "全部":
+            if selected_user != text["all_users_label"]:
                 df = df[df[key_col] == selected_user]
         else:
             df = df[df[key_col] == st.session_state["username"]]
