@@ -149,7 +149,10 @@ available_sheets.sort()
 
 current_month = datetime.utcnow() + timedelta(hours=8)
 current_sheet = current_month.strftime("%Y%m")
-default_index = available_sheets.index(current_sheet) if current_sheet in available_sheets else 0
+default_index = available_sheets.index(current_sheet) if current_sheet in available_sheets else -1
+if default_index == -1:
+    st.warning("⚠️ 尚無任何打卡工作表")
+    st.stop()
 
 selected_month = st.selectbox(text["select_month"], available_sheets, index=default_index)
 
@@ -181,9 +184,11 @@ try:
         else:
             df = df[df[key_col] == st.session_state["username"]]
 
+        # ✅ 改成：先判斷有資料再進行時間轉換
         if df.empty:
             st.info(text["no_record"] if not is_admin else text["no_data"])
         else:
+            # ✅ 時間轉換只對篩選後的資料進行
             df["打卡時間"] = pd.to_datetime(df["日期"] + " " + df["時間"], format="%Y/%m/%d %H:%M:%S")
             df = df.sort_values(by="打卡時間", ascending=True)
             df = df.head(100).reset_index(drop=True)
@@ -193,22 +198,15 @@ try:
             column_map = text["columns"]
             df_renamed = df.drop(columns=["打卡時間"]).rename(columns=column_map)
 
-            # ✅ 顯示翻譯後的欄位名稱
             st.table(df_renamed)
 
-            # 匯出 Excel（僅限 admin）
             if is_admin:
                 excel_buffer = io.BytesIO()
                 export_df = df.drop(columns=["打卡時間"]).rename(columns=column_map)
                 export_df.to_excel(excel_buffer, index=False, sheet_name=selected_month)
                 excel_buffer.seek(0)
 
-                # 判斷選擇員工名稱，要顯示中文或英文
-                if selected_user == text["all_users_label"]:
-                    user_label = text["all_users_label"]
-                else:
-                    user_label = selected_user
-
+                user_label = selected_user if selected_user != text["all_users_label"] else text["all_users_label"]
                 filename = f"{selected_month}_{user_label}_{text['file_label']}.xlsx"
 
                 st.download_button(
@@ -218,11 +216,10 @@ try:
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                 )
 
-
-
 except gspread.exceptions.WorksheetNotFound:
     st.error(f"{text['sheet_not_found']}{selected_month}")
 except Exception as e:
     st.error(f"{text['read_error']}{e}")
+
 
 
