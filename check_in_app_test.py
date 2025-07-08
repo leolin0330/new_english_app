@@ -55,6 +55,7 @@ text = {
             "時間": "時間"
         },
         "all_users_label": "所有人",
+        "file_label": "打卡紀錄"
     },
     "English": {
         "title": "🔐 Admin Panel (Clock-in System)" if is_admin else "🔐 Sign-in System (Test Area)",
@@ -81,6 +82,7 @@ text = {
             "時間": "Time"
         },
         "all_users_label": "All",
+        "file_label": "Check-in Record"
     }
 }[st.session_state["language"]]
 
@@ -211,7 +213,7 @@ try:
                 else:
                     user_label = selected_user  # 如果你員工名稱是中文，顯示中文；如果英文，顯示英文
 
-                filename = f"{selected_month}_{user_label}_打卡紀錄.xlsx"
+                filename = f"{selected_month}_{user_label}_{text['file_label']}.xlsx"
 
                 st.download_button(
                     label="📥 " + ("下載 Excel" if st.session_state["language"] == "中文" else "Download Excel"),
