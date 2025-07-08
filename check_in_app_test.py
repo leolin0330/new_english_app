@@ -151,7 +151,14 @@ try:
             st.warning(text["missing_column"])
             st.stop()
 
-        if not is_admin:
+        # 管理員選擇要查看的人員
+        if is_admin:
+            user_list = sorted(df[key_col].unique())
+            user_list.insert(0, "全部")  # 在最前面加上「全部」
+            selected_user = st.selectbox("👥 選擇人員", user_list)
+            if selected_user != "全部":
+                df = df[df[key_col] == selected_user]
+        else:
             df = df[df[key_col] == st.session_state["username"]]
 
         if df.empty:
@@ -166,4 +173,5 @@ except gspread.exceptions.WorksheetNotFound:
     st.error(f"{text['sheet_not_found']}{selected_month}")
 except Exception as e:
     st.error(f"{text['read_error']}{e}")
+
 
