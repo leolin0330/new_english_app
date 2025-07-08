@@ -22,9 +22,10 @@ with col2:
             st.rerun()
 
 # --- 語系文字 ---
+is_admin = st.session_state.get("username") == "admin"
 text = {
     "中文": {
-        "title": "🔐 管理者介面（打卡系統）" if st.session_state["username"] == "admin" else "🔐 登入打卡系統(測試區)",
+        "title": "🔐 管理者介面（打卡系統）" if is_admin else "🔐 登入打卡系統(測試區)",
         "username": "帳號",
         "password": "密碼",
         "login": "登入",
