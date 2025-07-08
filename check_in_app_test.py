@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from google.oauth2.service_account import Credentials
 import gspread
 import pandas as pd
+import io
 
 # --- 語言切換按鈕（模擬右上角） ---
 if "language" not in st.session_state:
@@ -46,7 +47,8 @@ text = {
         "no_record": "❗你在這個月份尚未打過卡。",
         "missing_column": "⚠️ 此表單缺少正確的使用者欄位（帳號或姓名）",
         "sheet_not_found": "❌ 找不到對應月份的工作表：",
-        "read_error": "❌ 無法讀取打卡資料："
+        "read_error": "❌ 無法讀取打卡資料：",
+        "download": "📥 下載 Excel"
     },
     "English": {
         "title": "🔐 Admin Panel (Clock-in System)" if is_admin else "🔐 Sign-in System (Test Area)",
@@ -65,7 +67,8 @@ text = {
         "no_record": "❗You have not checked in this month.",
         "missing_column": "⚠️ Missing 'username' or 'name' column in the sheet",
         "sheet_not_found": "❌ Worksheet not found for: ",
-        "read_error": "❌ Failed to read check-in data: "
+        "read_error": "❌ Failed to read check-in data: ",
+        "download":"📥 Download Excel"
     }
 }[st.session_state["language"]]
 
@@ -176,6 +179,23 @@ try:
             df = df.head(100).reset_index(drop=True)
             df.index += 1
             st.table(df.drop(columns=["打卡時間"]))
+
+            # 匯出 Excel（僅限 admin）
+            if is_admin:
+                excel_buffer = io.BytesIO()
+                export_df = df.drop(columns=["打卡時間"])
+                export_df.to_excel(excel_buffer, index=False, sheet_name=selected_month)
+                excel_buffer.seek(0)
+
+                filename = f"{selected_month}_打卡紀錄.xlsx"
+
+                st.download_button(
+                    label=text["download"],
+                    data=excel_buffer,
+                    file_name=filename,
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
+
 except gspread.exceptions.WorksheetNotFound:
     st.error(f"{text['sheet_not_found']}{selected_month}")
 except Exception as e:
