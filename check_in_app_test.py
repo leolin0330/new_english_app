@@ -192,25 +192,26 @@ try:
             # 根據語言轉換欄位名稱
             column_map = text["columns"]
             df_renamed = df.drop(columns=["打卡時間"]).rename(columns=column_map)
-            st.table(df_renamed)
 
-            st.table(df.drop(columns=["打卡時間"]))
+            # ✅ 顯示翻譯後的欄位名稱
+            st.table(df_renamed)
 
             # 匯出 Excel（僅限 admin）
             if is_admin:
                 excel_buffer = io.BytesIO()
-                export_df = df.drop(columns=["打卡時間"])
+                export_df = df.drop(columns=["打卡時間"]).rename(columns=column_map)
                 export_df.to_excel(excel_buffer, index=False, sheet_name=selected_month)
                 excel_buffer.seek(0)
 
                 filename = f"{selected_month}_打卡紀錄.xlsx"
 
                 st.download_button(
-                    label=text["download"],
+                    label="📥 " + ("下載 Excel" if st.session_state["language"] == "中文" else "Download Excel"),
                     data=excel_buffer,
                     file_name=filename,
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                 )
+
 
 except gspread.exceptions.WorksheetNotFound:
     st.error(f"{text['sheet_not_found']}{selected_month}")
