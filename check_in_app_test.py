@@ -53,7 +53,8 @@ text = {
             "姓名": "姓名",
             "日期": "日期",
             "時間": "時間"
-        }
+        },
+        "all_users_label": "所有人",
     },
     "English": {
         "title": "🔐 Admin Panel (Clock-in System)" if is_admin else "🔐 Sign-in System (Test Area)",
@@ -78,7 +79,8 @@ text = {
             "姓名": "Name",
             "日期": "Date",
             "時間": "Time"
-        }
+        },
+        "all_users_label": "All",
     }
 }[st.session_state["language"]]
 
@@ -204,7 +206,13 @@ try:
                 export_df.to_excel(excel_buffer, index=False, sheet_name=selected_month)
                 excel_buffer.seek(0)
 
-                filename = f"{selected_month}_打卡紀錄.xlsx"
+                # 判斷選擇員工名稱，要顯示中文或英文
+                if selected_user == "全部":
+                    user_label = text["all_users_label"]
+                else:
+                    user_label = selected_user  # 如果你員工名稱是中文，顯示中文；如果英文，顯示英文
+
+                filename = f"{selected_month}_{user_label}_打卡紀錄.xlsx"
 
                 st.download_button(
                     label="📥 " + ("下載 Excel" if st.session_state["language"] == "中文" else "Download Excel"),
@@ -212,6 +220,7 @@ try:
                     file_name=filename,
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                 )
+
 
 
 except gspread.exceptions.WorksheetNotFound:
