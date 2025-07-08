@@ -24,7 +24,7 @@ with col2:
 # --- 語系文字 ---
 text = {
     "中文": {
-        "title": "🔐 登入打卡系統(測試區)",
+        "title": "🔐 管理者介面（打卡系統）" if st.session_state["username"] == "admin" else "🔐 登入打卡系統(測試區)",
         "username": "帳號",
         "password": "密碼",
         "login": "登入",
@@ -106,15 +106,19 @@ def get_sheet_for(dt):
         worksheet.append_row(["姓名", "日期", "時間"])
         return worksheet
 
+# 判斷是否為管理者
+is_admin = st.session_state["username"] == "admin"
+
 # --- 打卡按鈕 ---
-if st.button(text["checkin"]):
-    now = datetime.utcnow() + timedelta(hours=8)
-    date = now.strftime("%Y/%m/%d")
-    time = now.strftime("%H:%M:%S")
-    sheet = get_sheet_for(now)
-    sheet.append_row([st.session_state["username"], date, time])
-    st.success(f"{text['checkin_success']}{date} {time}")
-    st.rerun()
+if not is_admin:
+    if st.button(text["checkin"]):
+        now = datetime.utcnow() + timedelta(hours=8)
+        date = now.strftime("%Y/%m/%d")
+        time = now.strftime("%H:%M:%S")
+        sheet = get_sheet_for(now)
+        sheet.append_row([st.session_state["username"], date, time])
+        st.success(f"{text['checkin_success']}{date} {time}")
+        st.rerun()
 
 # --- 顯示歷史紀錄 ---
 st.subheader(text["history_title"])
@@ -139,22 +143,26 @@ try:
         df = pd.DataFrame(rows, columns=header)
 
         if "帳號" in df.columns:
-            user_df = df[df["帳號"] == st.session_state["username"]]
+            key_col = "帳號"
         elif "姓名" in df.columns:
-            user_df = df[df["姓名"] == st.session_state["username"]]
+            key_col = "姓名"
         else:
             st.warning(text["missing_column"])
             st.stop()
 
-        if user_df.empty:
-            st.info(text["no_record"])
+        if not is_admin:
+            df = df[df[key_col] == st.session_state["username"]]
+
+        if df.empty:
+            st.info(text["no_record"] if not is_admin else text["no_data"])
         else:
-            user_df["打卡時間"] = pd.to_datetime(user_df["日期"] + " " + user_df["時間"], format="%Y/%m/%d %H:%M:%S")
-            user_df = user_df.sort_values(by="打卡時間", ascending=True)
-            user_df = user_df.head(10).reset_index(drop=True)
-            user_df.index += 1
-            st.table(user_df.drop(columns=["打卡時間"]))
+            df["打卡時間"] = pd.to_datetime(df["日期"] + " " + df["時間"], format="%Y/%m/%d %H:%M:%S")
+            df = df.sort_values(by="打卡時間", ascending=True)
+            df = df.head(100).reset_index(drop=True)
+            df.index += 1
+            st.table(df.drop(columns=["打卡時間"]))
 except gspread.exceptions.WorksheetNotFound:
     st.error(f"{text['sheet_not_found']}{selected_month}")
 except Exception as e:
     st.error(f"{text['read_error']}{e}")
+
