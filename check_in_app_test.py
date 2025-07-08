@@ -194,7 +194,6 @@ try:
             # 根據語言轉換欄位名稱
             column_map = text["columns"]
             df_renamed = df.drop(columns=["打卡時間"]).rename(columns=column_map)
-            st.table(df_renamed)
 
             # ✅ 顯示翻譯後的欄位名稱
             st.table(df_renamed)
