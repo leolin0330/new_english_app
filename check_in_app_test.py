@@ -178,7 +178,7 @@ try:
         # 管理員選擇要查看的人員
         if is_admin:
             user_list = sorted(df[key_col].unique())
-            user_list.insert(0, "全部")  # 在最前面加上「全部」
+            user_list.insert(0, text["all_users_label"])
             selected_user = st.selectbox(text["select_user"], user_list)
             if selected_user != "全部":
                 df = df[df[key_col] == selected_user]
@@ -208,10 +208,10 @@ try:
                 excel_buffer.seek(0)
 
                 # 判斷選擇員工名稱，要顯示中文或英文
-                if selected_user == "全部":
+                if selected_user == text["all_users_label"]:
                     user_label = text["all_users_label"]
                 else:
-                    user_label = selected_user  # 如果你員工名稱是中文，顯示中文；如果英文，顯示英文
+                    user_label = selected_user
 
                 filename = f"{selected_month}_{user_label}_{text['file_label']}.xlsx"
 
