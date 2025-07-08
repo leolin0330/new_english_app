@@ -13,18 +13,14 @@ if "logged_in" not in st.session_state:
 if "username" not in st.session_state:
     st.session_state["username"] = ""
 
-# 調整：右邊靠邊顯示按鈕
+# 調整：右邊靠邊顯示按鈕（只留一個切換按鈕）
 col1, col2, col3 = st.columns([10, 1, 1])
 with col3:
-    if st.session_state["language"] != "中文":
-        if st.button("中文"):
-            st.session_state["language"] = "中文"
-            st.rerun()
-with col2:
-    if st.session_state["language"] != "English":
-        if st.button("English"):
-            st.session_state["language"] = "English"
-            st.rerun()
+    # 根據目前語言切換到對應語言
+    toggle_lang = "English" if st.session_state["language"] == "中文" else "中文"
+    if st.button(toggle_lang):
+        st.session_state["language"] = toggle_lang
+        st.rerun()
 
 # --- 語系文字 ---
 is_admin = st.session_state["username"] == "admin"
