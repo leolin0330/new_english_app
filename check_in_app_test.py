@@ -48,7 +48,12 @@ text = {
         "missing_column": "⚠️ 此表單缺少正確的使用者欄位（帳號或姓名）",
         "sheet_not_found": "❌ 找不到對應月份的工作表：",
         "read_error": "❌ 無法讀取打卡資料：",
-        "download": "📥 下載 Excel"
+        "download": "📥 下載 Excel",
+        "columns": {
+            "姓名": "Name",
+            "日期": "Date",
+            "時間": "Time"
+        }
     },
     "English": {
         "title": "🔐 Admin Panel (Clock-in System)" if is_admin else "🔐 Sign-in System (Test Area)",
@@ -68,7 +73,12 @@ text = {
         "missing_column": "⚠️ Missing 'username' or 'name' column in the sheet",
         "sheet_not_found": "❌ Worksheet not found for: ",
         "read_error": "❌ Failed to read check-in data: ",
-        "download":"📥 Download Excel"
+        "download":"📥 Download Excel",
+        "columns": {
+            "姓名": "Name",
+            "日期": "Date",
+            "時間": "Time"
+        }
     }
 }[st.session_state["language"]]
 
@@ -178,6 +188,12 @@ try:
             df = df.sort_values(by="打卡時間", ascending=True)
             df = df.head(100).reset_index(drop=True)
             df.index += 1
+
+            # 根據語言轉換欄位名稱
+            column_map = text["columns"]
+            df_renamed = df.drop(columns=["打卡時間"]).rename(columns=column_map)
+            st.table(df_renamed)
+
             st.table(df.drop(columns=["打卡時間"]))
 
             # 匯出 Excel（僅限 admin）
