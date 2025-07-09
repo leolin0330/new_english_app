@@ -7,7 +7,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-RUN ls -al /app/.streamlit
 
 EXPOSE 8501
 
