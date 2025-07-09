@@ -4,6 +4,8 @@ from google.oauth2.service_account import Credentials
 import gspread
 import pandas as pd
 import io
+import json
+from google.cloud import secretmanager
 
 # --- 語言切換按鈕（模擬右上角） ---
 if "language" not in st.session_state:
@@ -85,15 +87,24 @@ text = {
 st.set_page_config(page_title=text["title"], page_icon="🕘")
 st.title(text["title"])
 
+def get_secret(secret_id: str, version: str = "latest") -> dict:
+    client = secretmanager.SecretManagerServiceClient()
+    name = f"projects/616566246123/secrets/{secret_id}/versions/{version}"
+    response = client.access_secret_version(request={"name": name})
+    payload = response.payload.data.decode("UTF-8")
+    return json.loads(payload)
+
+# --- Google Sheets 認證 ---
 # --- Google Sheets 認證 ---
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-info = dict(st.secrets["google_service_account"])
+info = get_secret("google_service_account")  # 改用 GCP Secret Manager
 credentials = Credentials.from_service_account_info(info, scopes=scope)
 client = gspread.authorize(credentials)
 spreadsheet = client.open("打卡紀錄")
 
 # --- 使用者資訊 ---
-users = st.secrets["users"]
+users = get_secret("users")  # 改用 Secret Manager 讀 users JSON
+
 
 if "logged_in" not in st.session_state:
     st.session_state["logged_in"] = False
