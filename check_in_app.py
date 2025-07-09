@@ -19,14 +19,14 @@ with col3:
     toggle_lang = "English" if st.session_state["language"] == "中文" else "中文"
     if st.button(toggle_lang):
         st.session_state["language"] = toggle_lang
-        st.rerun()
+        # st.rerun()
 
 # --- 語系文字 ---
 is_admin = st.session_state["username"] == "admin"
 
 text = {
     "中文": {
-        "title": "🔐 管理者介面（打卡系統）" if is_admin else "🔐 登入打卡系統",
+        "title": "🔐 管理者介面（打卡系統）" if is_admin else "🔐 登入打卡系統aaaaa",
         "select_user": "👥 選擇人員",
         "username": "帳號",
         "password": "密碼",
