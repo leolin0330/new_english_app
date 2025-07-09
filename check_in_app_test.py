@@ -19,7 +19,7 @@ with col3:
     toggle_lang = "English" if st.session_state["language"] == "中文" else "中文"
     if st.button(toggle_lang):
         st.session_state["language"] = toggle_lang
-        # st.rerun()
+
 
 # --- 語系文字 ---
 is_admin = st.session_state["username"] == "admin"
