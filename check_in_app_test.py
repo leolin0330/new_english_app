@@ -158,40 +158,36 @@ if st.button("🚪 登出" if st.session_state["language"] == "中文" else "�
 
 
 
-# --- 自動建立當月工作表 ---
-def get_sheet_for(dt):
-    sheet_name = dt.strftime("%Y%m")
-    try:
-        return spreadsheet.worksheet(sheet_name)
-    except gspread.exceptions.WorksheetNotFound:
-        worksheet = spreadsheet.add_worksheet(title=sheet_name, rows=1000, cols=10)
-        worksheet.append_row(["姓名", "日期", "時間"])
-        return worksheet
+# --- 打卡功能 ---
+def check_in():
+    now = datetime.utcnow() + timedelta(hours=8)
+    date = now.strftime("%Y/%m/%d")
+    time = now.strftime("%H:%M:%S")
+    sheet = get_sheet_for(now)
+    sheet.append_row([st.session_state["username"], date, time])
+    st.success(f"{text['checkin_success']}{date} {time}")
+    st.rerun()
 
-# 判斷是否為管理者
-is_admin = st.session_state["username"] == "admin"
-
-# --- 打卡按鈕 ---
 if not is_admin:
     if st.button(text["checkin"]):
-        now = datetime.utcnow() + timedelta(hours=8)
-        date = now.strftime("%Y/%m/%d")
-        time = now.strftime("%H:%M:%S")
-        sheet = get_sheet_for(now)
-        sheet.append_row([st.session_state["username"], date, time])
-        st.success(f"{text['checkin_success']}{date} {time}")
-        st.rerun()
+        check_in()
 
-# --- 顯示歷史紀錄 ---
+
+# --- 歷史紀錄區塊 ---
 st.subheader(text["history_title"])
 
-available_sheets = [ws.title for ws in spreadsheet.worksheets() if ws.title.isdigit()]
+@st.cache_data(ttl=60)  # 快取 1 分鐘內的資料
+def get_all_worksheets(spreadsheet):
+    return [ws.title for ws in spreadsheet.worksheets() if ws.title.isdigit()]
+
+available_sheets = get_all_worksheets(spreadsheet)
 available_sheets.sort()
 
 current_month = datetime.utcnow() + timedelta(hours=8)
 current_sheet = current_month.strftime("%Y%m")
-default_index = available_sheets.index(current_sheet) if current_sheet in available_sheets else -1
-if default_index == -1:
+default_index = available_sheets.index(current_sheet) if current_sheet in available_sheets else 0
+
+if not available_sheets:
     st.warning("⚠️ 尚無任何打卡工作表")
     st.stop()
 
@@ -203,64 +199,65 @@ try:
 
     if len(records) <= 1:
         st.info(text["no_data"])
+        st.stop()
+
+    header, *rows = records
+    df = pd.DataFrame(rows, columns=header)
+
+    # 找出關鍵欄位
+    if "帳號" in df.columns:
+        key_col = "帳號"
+    elif "姓名" in df.columns:
+        key_col = "姓名"
     else:
-        header, *rows = records
-        df = pd.DataFrame(rows, columns=header)
+        st.warning(text["missing_column"])
+        st.stop()
 
-        if "帳號" in df.columns:
-            key_col = "帳號"
-        elif "姓名" in df.columns:
-            key_col = "姓名"
-        else:
-            st.warning(text["missing_column"])
-            st.stop()
+    # 篩選使用者資料
+    if is_admin:
+        user_list = sorted(df[key_col].unique())
+        user_list.insert(0, text["all_users_label"])
+        selected_user = st.selectbox(text["select_user"], user_list)
+        if selected_user != text["all_users_label"]:
+            df = df[df[key_col] == selected_user]
+    else:
+        df = df[df[key_col] == st.session_state["username"]]
 
-        # 管理員選擇要查看的人員
-        if is_admin:
-            user_list = sorted(df[key_col].unique())
-            user_list.insert(0, text["all_users_label"])
-            selected_user = st.selectbox(text["select_user"], user_list)
-            if selected_user != text["all_users_label"]:
-                df = df[df[key_col] == selected_user]
-        else:
-            df = df[df[key_col] == st.session_state["username"]]
+    # 無資料提示
+    if df.empty:
+        st.info(text["no_record"] if not is_admin else text["no_data"])
+        st.stop()
 
-        # ✅ 改成：先判斷有資料再進行時間轉換
-        if df.empty:
-            st.info(text["no_record"] if not is_admin else text["no_data"])
-        else:
-            # ✅ 時間轉換只對篩選後的資料進行
-            df["打卡時間"] = pd.to_datetime(df["日期"] + " " + df["時間"], format="%Y/%m/%d %H:%M:%S")
-            df = df.sort_values(by="打卡時間", ascending=True)
-            df = df.head(100).reset_index(drop=True)
-            df.index += 1
+    # 時間處理與排序
+    df["打卡時間"] = pd.to_datetime(df["日期"] + " " + df["時間"], format="%Y/%m/%d %H:%M:%S")
+    df = df.sort_values("打卡時間").head(100).reset_index(drop=True)
+    df.index += 1
 
-            # 根據語言轉換欄位名稱
-            column_map = text["columns"]
-            df_renamed = df.drop(columns=["打卡時間"]).rename(columns=column_map)
+    # 欄位轉換 + 顯示
+    column_map = text["columns"]
+    df_display = df.drop(columns=["打卡時間"]).rename(columns=column_map)
+    st.table(df_display)
 
-            st.table(df_renamed)
+    # 管理者提供下載
+    if is_admin:
+        excel_buffer = io.BytesIO()
+        df_display.to_excel(excel_buffer, index=False, sheet_name=selected_month)
+        excel_buffer.seek(0)
+        user_label = selected_user if selected_user != text["all_users_label"] else text["all_users_label"]
+        filename = f"{selected_month}_{user_label}_{text['file_label']}.xlsx"
 
-            if is_admin:
-                excel_buffer = io.BytesIO()
-                export_df = df.drop(columns=["打卡時間"]).rename(columns=column_map)
-                export_df.to_excel(excel_buffer, index=False, sheet_name=selected_month)
-                excel_buffer.seek(0)
-
-                user_label = selected_user if selected_user != text["all_users_label"] else text["all_users_label"]
-                filename = f"{selected_month}_{user_label}_{text['file_label']}.xlsx"
-
-                st.download_button(
-                    label="📥 " + ("下載 Excel" if st.session_state["language"] == "中文" else "Download Excel"),
-                    data=excel_buffer,
-                    file_name=filename,
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                )
+        st.download_button(
+            label="📥 " + ("下載 Excel" if st.session_state["language"] == "中文" else "Download Excel"),
+            data=excel_buffer,
+            file_name=filename,
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
 
 except gspread.exceptions.WorksheetNotFound:
     st.error(f"{text['sheet_not_found']}{selected_month}")
 except Exception as e:
     st.error(f"{text['read_error']}{e}")
+
 
 
 
