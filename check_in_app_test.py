@@ -110,11 +110,12 @@ def get_users_from_sheet():
         records = user_sheet.get_all_records()
         users_dict = {}
         for row in records:
-            if str(row.get("是否啟用", "Y")).strip().upper() == "Y":
-                users_dict[row["帳號"]] = {
-                    "password": row["密碼"],
-                    "role": row.get("角色", "user")
-                }
+            enabled = str(row.get("是否啟用", "Y")).strip().upper() == "Y"
+            users_dict[row["帳號"]] = {
+                "password": row["密碼"],
+                "role": row.get("角色", "user"),
+                "enabled": enabled
+            }
         return users_dict
     except Exception as e:
         st.error(f"❌ 無法讀取使用者資料表：{e}")
@@ -132,14 +133,20 @@ if not st.session_state["logged_in"]:
     username = st.text_input(text["username"])
     password = st.text_input(text["password"], type="password")
     if st.button(text["login"]):
-        if username in users and users[username]["password"] == password:
-            st.session_state["logged_in"] = True
-            st.session_state["username"] = username
-            st.session_state["role"] = users[username]["role"]  # 儲存角色
-            st.success(text["login_success"])
-            st.rerun()
+        if username not in users:
+            st.error(text["login_error"])  # 帳號不存在
         else:
-            st.error(text["login_error"])
+            user_info = users[username]
+            if not user_info["enabled"]:
+                st.error("⚠️ 該帳號已停用")
+            elif user_info["password"] == password:
+                st.session_state["logged_in"] = True
+                st.session_state["username"] = username
+                st.session_state["role"] = user_info.get("role", "user")
+                st.success(text["login_success"])
+                st.rerun()
+            else:
+                st.error(text["login_error"])  # 密碼錯誤
     st.stop()
 
 st.success(f"{text['welcome']}{st.session_state['username']}")
