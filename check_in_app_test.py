@@ -22,7 +22,8 @@ with col3:
 
 
 # --- 語系文字 ---
-is_admin = st.session_state["username"] == "admin"
+is_admin = st.session_state.get("role") == "admin"
+
 
 text = {
     "中文": {
@@ -93,7 +94,23 @@ client = gspread.authorize(credentials)
 spreadsheet = client.open("打卡紀錄")
 
 # --- 使用者資訊 ---
-users = st.secrets["users"]
+def get_users_from_sheet():
+    try:
+        user_sheet = client.open("users_login").sheet1
+        records = user_sheet.get_all_records()
+        users_dict = {}
+        for row in records:
+            if str(row.get("是否啟用", "Y")).strip().upper() == "Y":
+                users_dict[row["帳號"]] = {
+                    "password": row["密碼"],
+                    "role": row.get("角色", "user")
+                }
+        return users_dict
+    except Exception as e:
+        st.error(f"❌ 無法讀取使用者資料表：{e}")
+        return {}
+
+users = get_users_from_sheet()
 
 if "logged_in" not in st.session_state:
     st.session_state["logged_in"] = False
@@ -105,9 +122,10 @@ if not st.session_state["logged_in"]:
     username = st.text_input(text["username"])
     password = st.text_input(text["password"], type="password")
     if st.button(text["login"]):
-        if username in users and users[username] == password:
+        if username in users and users[username]["password"] == password:
             st.session_state["logged_in"] = True
             st.session_state["username"] = username
+            st.session_state["role"] = users[username]["role"]  # 儲存角色
             st.success(text["login_success"])
             st.rerun()
         else:
