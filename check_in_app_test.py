@@ -7,7 +7,48 @@ import io
 from google.cloud import secretmanager
 import json
 
-# --- 語言切換按鈕（模擬右上角） ---
+# --- 快取 Secret ---
+@st.cache_resource
+def get_cached_secret(secret_id: str, version: str = "latest") -> dict:
+    client = secretmanager.SecretManagerServiceClient()
+    name = f"projects/616566246123/secrets/{secret_id}/versions/{version}"
+    response = client.access_secret_version(request={"name": name})
+    payload = response.payload.data.decode("UTF-8")
+    return json.loads(payload)
+
+# --- 快取 Google Sheets 認證 ---
+@st.cache_resource
+def get_gspread_client():
+    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+    info = get_cached_secret("google_service_account")
+    credentials = Credentials.from_service_account_info(info, scopes=scope)
+    return gspread.authorize(credentials)
+
+client = get_gspread_client()
+spreadsheet = client.open("打卡紀錄")
+
+# --- 使用者資訊快取 ---
+@st.cache_data(ttl=30)
+def get_users_from_sheet():
+    try:
+        user_sheet = client.open("users_login").sheet1
+        records = user_sheet.get_all_records()
+        users_dict = {}
+        for row in records:
+            enabled = str(row.get("是否啟用", "Y")).strip().upper() == "Y"
+            users_dict[row["帳號"]] = {
+                "password": row["密碼"],
+                "role": row.get("角色", "user"),
+                "enabled": enabled
+            }
+        return users_dict
+    except Exception as e:
+        st.error(f"❌ 無法讀取使用者資料表：{e}")
+        return {}
+
+users = get_users_from_sheet()
+
+# --- 語言與登入狀態初始化 ---
 if "language" not in st.session_state:
     st.session_state["language"] = "中文"
 if "logged_in" not in st.session_state:
@@ -15,13 +56,12 @@ if "logged_in" not in st.session_state:
 if "username" not in st.session_state:
     st.session_state["username"] = ""
 
-# 調整：右邊靠邊顯示按鈕（只留一個切換按鈕）
+# --- 語言切換按鈕 ---
 col1, col3 = st.columns([11, 1])
 with col3:
     toggle_lang = "English" if st.session_state["language"] == "中文" else "中文"
     if st.button(toggle_lang):
         st.session_state["language"] = toggle_lang
-
 
 # --- 語系文字 ---
 is_admin = st.session_state.get("role") == "admin"
@@ -84,49 +124,9 @@ text = {
     }
 }[st.session_state["language"]]
 
-# --- Streamlit 頁面設定 ---
+# --- 頁面設定 ---
 st.set_page_config(page_title=text["title"], page_icon="🕘")
 st.title(text["title"])
-
-# 從 GCP Secret Manager 取得金鑰
-def get_secret(secret_id: str, version: str = "latest") -> dict:
-    client = secretmanager.SecretManagerServiceClient()
-    name = f"projects/616566246123/secrets/{secret_id}/versions/{version}"
-    response = client.access_secret_version(request={"name": name})
-    payload = response.payload.data.decode("UTF-8")
-    return json.loads(payload)
-
-# --- Google Sheets 認證 ---
-scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-info = get_secret("google_service_account")
-credentials = Credentials.from_service_account_info(info, scopes=scope)
-client = gspread.authorize(credentials)
-spreadsheet = client.open("打卡紀錄")
-
-# --- 使用者資訊 ---
-def get_users_from_sheet():
-    try:
-        user_sheet = client.open("users_login").sheet1
-        records = user_sheet.get_all_records()
-        users_dict = {}
-        for row in records:
-            enabled = str(row.get("是否啟用", "Y")).strip().upper() == "Y"
-            users_dict[row["帳號"]] = {
-                "password": row["密碼"],
-                "role": row.get("角色", "user"),
-                "enabled": enabled
-            }
-        return users_dict
-    except Exception as e:
-        st.error(f"❌ 無法讀取使用者資料表：{e}")
-        return {}
-
-users = get_users_from_sheet()
-
-if "logged_in" not in st.session_state:
-    st.session_state["logged_in"] = False
-if "username" not in st.session_state:
-    st.session_state["username"] = ""
 
 # --- 登入流程 ---
 if not st.session_state["logged_in"]:
@@ -134,7 +134,7 @@ if not st.session_state["logged_in"]:
     password = st.text_input(text["password"], type="password")
     if st.button(text["login"]):
         if username not in users:
-            st.error(text["login_error"])  # 帳號不存在
+            st.error(text["login_error"])
         else:
             user_info = users[username]
             if not user_info["enabled"]:
@@ -146,15 +146,17 @@ if not st.session_state["logged_in"]:
                 st.success(text["login_success"])
                 st.rerun()
             else:
-                st.error(text["login_error"])  # 密碼錯誤
+                st.error(text["login_error"])
     st.stop()
 
 st.success(f"{text['welcome']}{st.session_state['username']}")
 
-# 登出按鈕
+# --- 登出按鈕 ---
 if st.button("🚪 登出" if st.session_state["language"] == "中文" else "🚪 Logout"):
-    st.session_state.clear()  # 清除所有 session 狀態
+    st.session_state.clear()
     st.rerun()
+
+
 
 # --- 自動建立當月工作表 ---
 def get_sheet_for(dt):
