@@ -87,6 +87,7 @@ text = {
 st.set_page_config(page_title=text["title"], page_icon="🕘")
 st.title(text["title"])
 
+# 從 GCP Secret Manager 取得金鑰
 def get_secret(secret_id: str, version: str = "latest") -> dict:
     client = secretmanager.SecretManagerServiceClient()
     name = f"projects/616566246123/secrets/{secret_id}/versions/{version}"
@@ -94,7 +95,7 @@ def get_secret(secret_id: str, version: str = "latest") -> dict:
     payload = response.payload.data.decode("UTF-8")
     return json.loads(payload)
 
-# --- Google Sheets 認證 ---
+
 # --- Google Sheets 認證 ---
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 info = get_secret("google_service_account")  # 改用 GCP Secret Manager
