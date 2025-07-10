@@ -151,6 +151,11 @@ if not st.session_state["logged_in"]:
 
 st.success(f"{text['welcome']}{st.session_state['username']}")
 
+# 登出按鈕
+if st.button("🚪 登出" if st.session_state["language"] == "中文" else "🚪 Logout"):
+    st.session_state.clear()  # 清除所有 session 狀態
+    st.rerun()
+
 # --- 自動建立當月工作表 ---
 def get_sheet_for(dt):
     sheet_name = dt.strftime("%Y%m")
