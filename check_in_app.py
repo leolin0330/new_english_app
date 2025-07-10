@@ -28,7 +28,7 @@ is_admin = st.session_state["username"] == "admin"
 
 text = {
     "中文": {
-        "title": "🔐 管理者介面（打卡系統）" if is_admin else "🔐 登入打卡系統...",
+        "title": "🔐 管理者介面（打卡系統正是區）" if is_admin else "🔐 登入打卡系統(正是區)",
         "select_user": "👥 選擇人員",
         "username": "帳號",
         "password": "密碼",
