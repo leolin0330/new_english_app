@@ -4,6 +4,8 @@ from google.oauth2.service_account import Credentials
 import gspread
 import pandas as pd
 import io
+from google.cloud import secretmanager
+import json
 
 # --- 語言切換按鈕（模擬右上角） ---
 if "language" not in st.session_state:
@@ -86,9 +88,17 @@ text = {
 st.set_page_config(page_title=text["title"], page_icon="🕘")
 st.title(text["title"])
 
+# 從 GCP Secret Manager 取得金鑰
+def get_secret(secret_id: str, version: str = "latest") -> dict:
+    client = secretmanager.SecretManagerServiceClient()
+    name = f"projects/616566246123/secrets/{secret_id}/versions/{version}"
+    response = client.access_secret_version(request={"name": name})
+    payload = response.payload.data.decode("UTF-8")
+    return json.loads(payload)
+
 # --- Google Sheets 認證 ---
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-info = dict(st.secrets["google_service_account"])
+info = get_secret("google_service_account")
 credentials = Credentials.from_service_account_info(info, scopes=scope)
 client = gspread.authorize(credentials)
 spreadsheet = client.open("打卡紀錄")
