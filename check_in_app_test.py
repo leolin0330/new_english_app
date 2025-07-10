@@ -177,7 +177,7 @@ if not is_admin:
 st.subheader(text["history_title"])
 
 @st.cache_data(ttl=60)  # 快取 1 分鐘內的資料
-def get_all_worksheets(spreadsheet):
+def get_all_worksheets(_spreadsheet):
     return [ws.title for ws in spreadsheet.worksheets() if ws.title.isdigit()]
 
 available_sheets = get_all_worksheets(spreadsheet)
