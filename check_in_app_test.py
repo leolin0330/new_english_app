@@ -96,7 +96,7 @@ text = {
         "file_label": "打卡紀錄"
     },
     "English": {
-        "title": "🔐 Admin Panel (Clock-in System)" if is_admin else "🔐 Sign-in System (Test Area)",
+        "title": "🔐 Admin Panel (GCP Clock-in System)" if is_admin else "🔐 Sign-in System (GCP Test Area)",
         "select_user": "👥 Select User",
         "username": "Username",
         "password": "Password",
