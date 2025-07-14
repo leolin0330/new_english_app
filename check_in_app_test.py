@@ -150,7 +150,7 @@ if not is_admin:
 
 # --- 管理者新增帳號 ---
 if is_admin and admin_option == "➕ 新增帳號":
-    st.subheader("新增使用者帳號")
+    st.subheader(text["add_user"])
     with st.form("add_user_form", clear_on_submit=True):
         new_username = st.text_input("👤 新帳號")
         new_password = st.text_input("🔑 密碼", type="password")
