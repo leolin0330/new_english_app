@@ -69,11 +69,6 @@ lang = load_translation_json("https://raw.githubusercontent.com/leolin0330/new_e
 text = lang[st.session_state["language"]]
 title_key = "title_admin" if is_admin else "title_user"
 st.set_page_config(page_title=text[title_key], page_icon="🕘")
-st.title(text[title_key])
-
-users = get_users_from_sheet()
-
-
 
 # --- 語言切換按鈕 ---
 col1, col3 = st.columns([11, 1])
@@ -82,6 +77,11 @@ with col3:
     if st.button(toggle_lang):
         st.session_state["language"] = toggle_lang
         st.rerun()
+
+st.title(text[title_key])
+
+users = get_users_from_sheet()
+
 
 
 
@@ -117,9 +117,6 @@ if st.button("🚪 登出" if st.session_state["language"] == "中文" else "�
 st.success(f"{text['welcome']}{st.session_state['username']}")
 st.divider()
 st.markdown("### 👇 功能選單")
-
-st.success(f"{text['welcome']}{st.session_state['username']}")
-st.divider()
 
 # --- 管理者功能側邊欄 ---
 if is_admin:
