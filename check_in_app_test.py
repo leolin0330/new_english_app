@@ -6,6 +6,7 @@ import pandas as pd
 import io
 from google.cloud import secretmanager
 import json
+import requests
 
 # --- 快取 Secret ---
 @st.cache_resource
@@ -46,6 +47,13 @@ def get_users_from_sheet():
         st.error(f"❌ 無法讀取使用者資料表：{e}")
         return {}
 
+@st.cache_resource
+def load_translation_json(url: str):
+    response = requests.get(url)
+    return response.json()
+
+lang = load_translation_json("https://raw.githubusercontent.com/leolin0330/new_english_app/main/lang_config.json")
+
 users = get_users_from_sheet()
 
 # --- 語言與登入狀態初始化 ---
@@ -66,63 +74,11 @@ with col3:
 # --- 語系文字 ---
 is_admin = st.session_state.get("role") == "admin"
 
+text = lang[st.session_state["language"]]
+title_key = "title_admin" if is_admin else "title_user"
+st.set_page_config(page_title=text[title_key], page_icon="🕘")
+st.title(text[title_key])
 
-text = {
-    "中文": {
-        "title": "🔐 管理者介面（打卡系統測試區)）" if is_admin else "🔐 登入打卡系統(GCP測試區)",
-        "select_user": "👥 選擇人員",
-        "username": "帳號",
-        "password": "密碼",
-        "login": "登入",
-        "login_success": "✅ 登入成功",
-        "login_error": "❌ 帳號或密碼錯誤",
-        "welcome": "👋 歡迎回來：",
-        "checkin": "✅ 我要打卡",
-        "checkin_success": "🎉 打卡成功！時間：",
-        "history_title": "📜 我的歷史打卡紀錄（可選月份）",
-        "select_month": "請選擇要查看的月份：",
-        "no_data": "⚠️ 選擇的月份尚無任何打卡資料。",
-        "no_record": "❗你在這個月份尚未打過卡。",
-        "missing_column": "⚠️ 此表單缺少正確的使用者欄位（帳號或姓名）",
-        "sheet_not_found": "❌ 找不到對應月份的工作表：",
-        "read_error": "❌ 無法讀取打卡資料：",
-        "download": "📥 下載 Excel",
-        "columns": {
-            "姓名": "姓名",
-            "日期": "日期",
-            "時間": "時間"
-        },
-        "all_users_label": "所有人",
-        "file_label": "打卡紀錄"
-    },
-    "English": {
-        "title": "🔐 Admin Panel (GCP Clock-in System)" if is_admin else "🔐 Sign-in System (GCP Test Area)",
-        "select_user": "👥 Select User",
-        "username": "Username",
-        "password": "Password",
-        "login": "Login",
-        "login_success": "✅ Login successful",
-        "login_error": "❌ Incorrect username or password",
-        "welcome": "👋 Welcome back: ",
-        "checkin": "✅ Clock In",
-        "checkin_success": "🎉 Clock-in success! Time: ",
-        "history_title": "📜 My Check-in History (selectable month)",
-        "select_month": "Please select a month:",
-        "no_data": "⚠️ No check-in data for this month.",
-        "no_record": "❗You have not checked in this month.",
-        "missing_column": "⚠️ Missing 'username' or 'name' column in the sheet",
-        "sheet_not_found": "❌ Worksheet not found for: ",
-        "read_error": "❌ Failed to read check-in data: ",
-        "download":"📥 Download Excel",
-        "columns": {
-            "姓名": "Name",
-            "日期": "Date",
-            "時間": "Time"
-        },
-        "all_users_label": "All",
-        "file_label": "Check-in Record"
-    }
-}[st.session_state["language"]]
 
 # --- 頁面設定 ---
 st.set_page_config(page_title=text["title"], page_icon="🕘")
