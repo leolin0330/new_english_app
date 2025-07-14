@@ -52,7 +52,15 @@ def load_translation_json(url: str):
     response = requests.get(url)
     return response.json()
 
+# --- 語系文字 ---
+is_admin = st.session_state.get("role") == "admin"
+
 lang = load_translation_json("https://raw.githubusercontent.com/leolin0330/new_english_app/main/lang_config.json")
+
+text = lang[st.session_state["language"]]
+title_key = "title_admin" if is_admin else "title_user"
+st.set_page_config(page_title=text[title_key], page_icon="🕘")
+st.title(text[title_key])
 
 users = get_users_from_sheet()
 
@@ -71,13 +79,9 @@ with col3:
     if st.button(toggle_lang):
         st.session_state["language"] = toggle_lang
 
-# --- 語系文字 ---
-is_admin = st.session_state.get("role") == "admin"
 
-text = lang[st.session_state["language"]]
-title_key = "title_admin" if is_admin else "title_user"
-st.set_page_config(page_title=text[title_key], page_icon="🕘")
-st.title(text[title_key])
+
+
 
 
 # --- 頁面設定 ---
