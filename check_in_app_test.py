@@ -149,7 +149,21 @@ if not st.session_state["logged_in"]:
                 st.error(text["login_error"])
     st.stop()
 
+# --- 登出按鈕 ---
+# --- 登出按鈕 ---
+if st.button("🚪 登出" if st.session_state["language"] == "中文" else "🚪 Logout"):
+    st.session_state.clear()
+    st.rerun()
+
 st.success(f"{text['welcome']}{st.session_state['username']}")
+
+# --- 管理者功能側邊欄 ---
+if is_admin:
+    with st.sidebar:
+        st.header("🛠️ 管理功能")
+        admin_option = st.radio("請選擇功能：", ["📊 查看打卡紀錄", "➕ 新增帳號"])
+else:
+    admin_option = None
 
 # --- 自動建立當月工作表 ---
 def get_sheet_for(dt):
@@ -161,13 +175,6 @@ def get_sheet_for(dt):
         worksheet.append_row(["姓名", "日期", "時間"])
         return worksheet
 
-# --- 登出按鈕 ---
-if st.button("🚪 登出" if st.session_state["language"] == "中文" else "🚪 Logout"):
-    st.session_state.clear()
-    st.rerun()
-
-
-
 # --- 打卡功能 ---
 def check_in():
     now = datetime.utcnow() + timedelta(hours=8)
@@ -178,99 +185,119 @@ def check_in():
     st.success(f"{text['checkin_success']}{date} {time}")
     st.rerun()
 
+# --- 一般使用者打卡按鈕 ---
 if not is_admin:
     if st.button(text["checkin"]):
         check_in()
 
+# --- 管理者新增帳號 ---
+if is_admin and admin_option == "➕ 新增帳號":
+    st.subheader("👤 管理者 - 新增使用者帳號")
+    with st.form("add_user_form", clear_on_submit=True):
+        new_username = st.text_input("👤 新帳號")
+        new_password = st.text_input("🔑 密碼", type="password")
+        new_role = st.selectbox("🧑‍💼 角色", options=["user", "admin"])
+        enabled = st.checkbox("✅ 啟用帳號", value=True)
+
+        submitted = st.form_submit_button("➕ 新增帳號")
+        if submitted:
+            try:
+                user_sheet = client.open("users_login").sheet1
+                existing_users = [row["帳號"] for row in user_sheet.get_all_records()]
+                if new_username in existing_users:
+                    st.warning("⚠️ 此帳號已存在，請使用其他帳號")
+                elif not new_username or not new_password:
+                    st.warning("⚠️ 請輸入完整帳號與密碼")
+                else:
+                    user_sheet.append_row([new_username, new_password, new_role, "Y" if enabled else "N"])
+                    st.success(f"✅ 已新增帳號：{new_username}（角色：{new_role}）")
+                    st.cache_data.clear()
+            except Exception as e:
+                st.error(f"❌ 新增帳號失敗：{e}")
 
 # --- 歷史紀錄區塊 ---
-st.subheader(text["history_title"])
+if not is_admin or admin_option == "📊 查看打卡紀錄":
+    st.subheader(text["history_title"])
 
-@st.cache_data(ttl=60)  # 快取 1 分鐘內的資料
-def get_all_worksheets(_spreadsheet):
-    return [ws.title for ws in spreadsheet.worksheets() if ws.title.isdigit()]
+    @st.cache_data(ttl=60)
+    def get_all_worksheets(_spreadsheet):
+        return [ws.title for ws in spreadsheet.worksheets() if ws.title.isdigit()]
 
-available_sheets = get_all_worksheets(spreadsheet)
-available_sheets.sort()
+    available_sheets = get_all_worksheets(spreadsheet)
+    available_sheets.sort()
 
-current_month = datetime.utcnow() + timedelta(hours=8)
-current_sheet = current_month.strftime("%Y%m")
-default_index = available_sheets.index(current_sheet) if current_sheet in available_sheets else 0
+    current_month = datetime.utcnow() + timedelta(hours=8)
+    current_sheet = current_month.strftime("%Y%m")
+    default_index = available_sheets.index(current_sheet) if current_sheet in available_sheets else 0
 
-if not available_sheets:
-    st.warning("⚠️ 尚無任何打卡工作表")
-    st.stop()
-
-selected_month = st.selectbox(text["select_month"], available_sheets, index=default_index)
-
-try:
-    sheet = spreadsheet.worksheet(selected_month)
-    records = sheet.get_all_values()
-
-    if len(records) <= 1:
-        st.info(text["no_data"])
+    if not available_sheets:
+        st.warning("⚠️ 尚無任何打卡工作表")
         st.stop()
 
-    header, *rows = records
-    df = pd.DataFrame(rows, columns=header)
+    selected_month = st.selectbox(text["select_month"], available_sheets, index=default_index)
 
-    # 找出關鍵欄位
-    if "帳號" in df.columns:
-        key_col = "帳號"
-    elif "姓名" in df.columns:
-        key_col = "姓名"
-    else:
-        st.warning(text["missing_column"])
-        st.stop()
+    try:
+        sheet = spreadsheet.worksheet(selected_month)
+        records = sheet.get_all_values()
 
-    # 篩選使用者資料
-    if is_admin:
-        user_list = sorted(df[key_col].unique())
-        user_list.insert(0, text["all_users_label"])
-        selected_user = st.selectbox(text["select_user"], user_list)
-        if selected_user != text["all_users_label"]:
-            df = df[df[key_col] == selected_user]
-    else:
-        df = df[df[key_col] == st.session_state["username"]]
+        if len(records) <= 1:
+            st.info(text["no_data"])
+            st.stop()
 
-    # 無資料提示
-    if df.empty:
-        st.info(text["no_record"] if not is_admin else text["no_data"])
-        st.stop()
+        header, *rows = records
+        df = pd.DataFrame(rows, columns=header)
 
-    # --- 時間處理與排序 ---
-    if "日期" not in df.columns or "時間" not in df.columns:
-        st.warning("⚠️ 表單缺少『日期』或『時間』欄位，無法顯示打卡時間排序")
-    else:
-        try:
-            df["打卡時間"] = pd.to_datetime(df["日期"] + " " + df["時間"], format="%Y/%m/%d %H:%M:%S", errors='coerce')
-            df = df.dropna(subset=["打卡時間"])  # 排除轉換失敗的列
-            df = df.sort_values("打卡時間").head(100).reset_index(drop=True)
-            df.index += 1
-        except Exception as e:
-            st.error(f"❌ 時間欄位處理錯誤：{e}")
+        if "帳號" in df.columns:
+            key_col = "帳號"
+        elif "姓名" in df.columns:
+            key_col = "姓名"
+        else:
+            st.warning(text["missing_column"])
+            st.stop()
 
-    # 欄位轉換 + 顯示
-    column_map = text["columns"]
-    df_display = df.drop(columns=["打卡時間"]).rename(columns=column_map)
-    st.table(df_display)
+        if is_admin:
+            user_list = sorted(df[key_col].unique())
+            user_list.insert(0, text["all_users_label"])
+            selected_user = st.selectbox(text["select_user"], user_list)
+            if selected_user != text["all_users_label"]:
+                df = df[df[key_col] == selected_user]
+        else:
+            df = df[df[key_col] == st.session_state["username"]]
 
-    # 管理者提供下載
-    if is_admin:
-        excel_buffer = io.BytesIO()
-        df_display.to_excel(excel_buffer, index=False, sheet_name=selected_month)
-        excel_buffer.seek(0)
-        user_label = selected_user if selected_user != text["all_users_label"] else text["all_users_label"]
-        filename = f"{selected_month}_{user_label}_{text['file_label']}.xlsx"
+        if df.empty:
+            st.info(text["no_record"] if not is_admin else text["no_data"])
+            st.stop()
 
-        st.download_button(
-            label="📥 " + ("下載 Excel" if st.session_state["language"] == "中文" else "Download Excel"),
-            data=excel_buffer,
-            file_name=filename,
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
+        if "日期" not in df.columns or "時間" not in df.columns:
+            st.warning("⚠️ 表單缺少『日期』或『時間』欄位，無法顯示打卡時間排序")
+        else:
+            try:
+                df["打卡時間"] = pd.to_datetime(df["日期"] + " " + df["時間"], format="%Y/%m/%d %H:%M:%S", errors='coerce')
+                df = df.dropna(subset=["打卡時間"])
+                df = df.sort_values("打卡時間").head(100).reset_index(drop=True)
+                df.index += 1
+            except Exception as e:
+                st.error(f"❌ 時間欄位處理錯誤：{e}")
 
-except gspread.exceptions.WorksheetNotFound:
-    st.error(f"{text['sheet_not_found']}{selected_month}")
-except Exception as e:
-    st.error(f"{text['read_error']}{e}")
+        column_map = text["columns"]
+        df_display = df.drop(columns=["打卡時間"]).rename(columns=column_map)
+        st.table(df_display)
+
+        if is_admin:
+            excel_buffer = io.BytesIO()
+            df_display.to_excel(excel_buffer, index=False, sheet_name=selected_month)
+            excel_buffer.seek(0)
+            user_label = selected_user if selected_user != text["all_users_label"] else text["all_users_label"]
+            filename = f"{selected_month}_{user_label}_{text['file_label']}.xlsx"
+
+            st.download_button(
+                label="📥 " + text["download"],
+                data=excel_buffer,
+                file_name=filename,
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
+
+    except gspread.exceptions.WorksheetNotFound:
+        st.error(f"{text['sheet_not_found']}{selected_month}")
+    except Exception as e:
+        st.error(f"{text['read_error']}{e}")
