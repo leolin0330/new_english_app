@@ -151,6 +151,16 @@ if not st.session_state["logged_in"]:
 
 st.success(f"{text['welcome']}{st.session_state['username']}")
 
+# --- 自動建立當月工作表 ---
+def get_sheet_for(dt):
+    sheet_name = dt.strftime("%Y%m")
+    try:
+        return spreadsheet.worksheet(sheet_name)
+    except gspread.exceptions.WorksheetNotFound:
+        worksheet = spreadsheet.add_worksheet(title=sheet_name, rows=1000, cols=10)
+        worksheet.append_row(["姓名", "日期", "時間"])
+        return worksheet
+
 # --- 登出按鈕 ---
 if st.button("🚪 登出" if st.session_state["language"] == "中文" else "🚪 Logout"):
     st.session_state.clear()
@@ -257,7 +267,3 @@ except gspread.exceptions.WorksheetNotFound:
     st.error(f"{text['sheet_not_found']}{selected_month}")
 except Exception as e:
     st.error(f"{text['read_error']}{e}")
-
-
-
-
