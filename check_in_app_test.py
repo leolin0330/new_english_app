@@ -238,10 +238,17 @@ try:
         st.info(text["no_record"] if not is_admin else text["no_data"])
         st.stop()
 
-    # 時間處理與排序
-    df["打卡時間"] = pd.to_datetime(df["日期"] + " " + df["時間"], format="%Y/%m/%d %H:%M:%S")
-    df = df.sort_values("打卡時間").head(100).reset_index(drop=True)
-    df.index += 1
+    # --- 時間處理與排序 ---
+    if "日期" not in df.columns or "時間" not in df.columns:
+        st.warning("⚠️ 表單缺少『日期』或『時間』欄位，無法顯示打卡時間排序")
+    else:
+        try:
+            df["打卡時間"] = pd.to_datetime(df["日期"] + " " + df["時間"], format="%Y/%m/%d %H:%M:%S", errors='coerce')
+            df = df.dropna(subset=["打卡時間"])  # 排除轉換失敗的列
+            df = df.sort_values("打卡時間").head(100).reset_index(drop=True)
+            df.index += 1
+        except Exception as e:
+            st.error(f"❌ 時間欄位處理錯誤：{e}")
 
     # 欄位轉換 + 顯示
     column_map = text["columns"]
