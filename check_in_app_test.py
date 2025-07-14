@@ -8,6 +8,15 @@ from google.cloud import secretmanager
 import json
 import requests
 
+
+# --- 語言與登入狀態初始化 ---
+if "language" not in st.session_state:
+    st.session_state["language"] = "中文"
+if "logged_in" not in st.session_state:
+    st.session_state["logged_in"] = False
+if "username" not in st.session_state:
+    st.session_state["username"] = ""
+
 # --- 快取 Secret ---
 @st.cache_resource
 def get_cached_secret(secret_id: str, version: str = "latest") -> dict:
@@ -64,13 +73,7 @@ st.title(text[title_key])
 
 users = get_users_from_sheet()
 
-# --- 語言與登入狀態初始化 ---
-if "language" not in st.session_state:
-    st.session_state["language"] = "中文"
-if "logged_in" not in st.session_state:
-    st.session_state["logged_in"] = False
-if "username" not in st.session_state:
-    st.session_state["username"] = ""
+
 
 # --- 語言切換按鈕 ---
 col1, col3 = st.columns([11, 1])
@@ -78,17 +81,12 @@ with col3:
     toggle_lang = "English" if st.session_state["language"] == "中文" else "中文"
     if st.button(toggle_lang):
         st.session_state["language"] = toggle_lang
+        st.rerun()
 
 
 
 
-
-
-# --- 頁面設定 ---
-st.set_page_config(page_title=text["title"], page_icon="🕘")
-st.title(text["title"])
-
-# --- 登入流程 ---
+    # --- 登入流程 ---
 if not st.session_state["logged_in"]:
     username = st.text_input(text["username"])
     password = st.text_input(text["password"], type="password")
@@ -109,13 +107,19 @@ if not st.session_state["logged_in"]:
                 st.error(text["login_error"])
     st.stop()
 
-# --- 登出按鈕 ---
+
 # --- 登出按鈕 ---
 if st.button("🚪 登出" if st.session_state["language"] == "中文" else "🚪 Logout"):
     st.session_state.clear()
     st.rerun()
 
+# ✅ 這邊開始主畫面顯示使用者歡迎詞與功能
 st.success(f"{text['welcome']}{st.session_state['username']}")
+st.divider()
+st.markdown("### 👇 功能選單")
+
+st.success(f"{text['welcome']}{st.session_state['username']}")
+st.divider()
 
 # --- 管理者功能側邊欄 ---
 if is_admin:
