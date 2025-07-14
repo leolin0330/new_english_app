@@ -18,14 +18,15 @@
     "missing_column": "⚠️ 此表單缺少正確的使用者欄位（帳號或姓名）",
     "sheet_not_found": "❌ 找不到對應月份的工作表：",
     "read_error": "❌ 無法讀取打卡資料：",
-    "download": "📥 下載 Excel",
+    "download": "📥下載 Excel",
     "columns": {
       "姓名": "姓名",
       "日期": "日期",
       "時間": "時間"
     },
     "all_users_label": "所有人",
-    "file_label": "打卡紀錄"
+    "file_label": "打卡紀錄",
+    "add_user": "新增使用者帳號"
   },
   "English": {
     "title_admin": "🔐 Admin Panel (GCP Clock-in System)",
@@ -46,13 +47,14 @@
     "missing_column": "⚠️ Missing 'username' or 'name' column in the sheet",
     "sheet_not_found": "❌ Worksheet not found for: ",
     "read_error": "❌ Failed to read check-in data: ",
-    "download": "📥 Download Excel",
+    "download": "📥Download Excel",
     "columns": {
       "姓名": "Name",
       "日期": "Date",
       "時間": "Time"
     },
     "all_users_label": "All",
-    "file_label": "Check-in Record"
+    "file_label": "Check-in Record",
+    "add_user": "Add User Account"
   }
 }
