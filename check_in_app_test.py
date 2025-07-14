@@ -115,13 +115,18 @@ st.success(f"{text['welcome']}{st.session_state['username']}")
 st.divider()
 st.markdown("### 👇 功能選單")
 
+
 # --- 管理者功能側邊欄 ---
 if is_admin:
+    if "admin_option" not in st.session_state:
+        st.session_state["admin_option"] = "📊 查看打卡紀錄"
     with st.sidebar:
         st.header("🛠️ 管理功能")
-        admin_option = st.radio("請選擇功能：", ["📊 查看打卡紀錄", "➕ 新增帳號"])
-else:
-    admin_option = None
+        st.session_state["admin_option"] = st.radio(
+            "請選擇功能：", ["📊 查看打卡紀錄", "➕ 新增帳號"],
+            index=["📊 查看打卡紀錄", "➕ 新增帳號"].index(st.session_state["admin_option"])
+        )
+admin_option = st.session_state.get("admin_option", None)
 
 # --- 自動建立當月工作表 ---
 def get_sheet_for(dt):
