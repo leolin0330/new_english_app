@@ -83,9 +83,6 @@ st.title(text[title_key])
 users = get_users_from_sheet()
 
 
-
-
-
     # --- 登入流程 ---
 if not st.session_state["logged_in"]:
     username = st.text_input(text["username"])
@@ -153,7 +150,7 @@ if not is_admin:
 
 # --- 管理者新增帳號 ---
 if is_admin and admin_option == "➕ 新增帳號":
-    st.subheader("👤 管理者 - 新增使用者帳號")
+    st.subheader("新增使用者帳號")
     with st.form("add_user_form", clear_on_submit=True):
         new_username = st.text_input("👤 新帳號")
         new_password = st.text_input("🔑 密碼", type="password")
