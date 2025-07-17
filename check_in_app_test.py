@@ -119,24 +119,34 @@ st.markdown("### 👇 功能選單")
 
 
 
-# --- 管理者功能側邊欄 ---
+# --- 管理者功能側邊欄（支援中英文選單） ---
 if is_admin:
     if "admin_option" not in st.session_state:
-        st.session_state["admin_option"] = "📊 查看打卡紀錄"
+        st.session_state["admin_option"] = "📊 查看打卡紀錄"  # 預設中文值
+
     with st.sidebar:
         st.header("🛠️ 管理功能")
-        options = [
-            "📊 查看打卡紀錄",
-            "➕ 新增帳號",
-            "🗂️ 查看所有帳號",
-            "🗑️ 刪除或停用帳號"
-        ]
-        st.session_state["admin_option"] = st.radio(
-            "請選擇功能：", options,
-            index=options.index(st.session_state["admin_option"])
-        )
 
-admin_option = st.session_state.get("admin_option", None)
+        # 從 lang_config.json 載入多語系選單
+        options_zh = text.get("admin_menu_options", [])
+        options_en = text.get("admin_menu_options_en", [])
+        options = options_zh if st.session_state["language"] == "中文" else options_en
+
+        # 防止語言切換時找不到對應選項造成錯誤
+        try:
+            default_index = options.index(st.session_state["admin_option"])
+        except ValueError:
+            default_index = 0
+
+        # 顯示選單並更新 session_state["admin_option"]
+        selected_option = st.radio("請選擇功能：", options, index=default_index)
+        st.session_state["admin_option"] = selected_option
+
+# 取得「實際功能邏輯用的選項名稱」用中文來對應
+admin_option = st.session_state["admin_option"]
+if st.session_state["language"] != "中文":
+    menu_map = dict(zip(text.get("admin_menu_options_en", []), text.get("admin_menu_options", [])))
+    admin_option = menu_map.get(admin_option, "📊 查看打卡紀錄")  # fallback 預設回首頁功能
 
 # --- 呼叫各功能 ---
 if is_admin:
