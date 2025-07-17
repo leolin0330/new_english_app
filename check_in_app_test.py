@@ -7,6 +7,8 @@ import io
 from google.cloud import secretmanager
 import json
 import requests
+from admin_user_management import add_user, view_all_users, delete_or_disable_user
+
 
 
 # --- 語言與登入狀態初始化 ---
@@ -116,17 +118,34 @@ st.divider()
 st.markdown("### 👇 功能選單")
 
 
+
 # --- 管理者功能側邊欄 ---
 if is_admin:
     if "admin_option" not in st.session_state:
         st.session_state["admin_option"] = "📊 查看打卡紀錄"
     with st.sidebar:
         st.header("🛠️ 管理功能")
+        options = [
+            "📊 查看打卡紀錄",
+            "➕ 新增帳號",
+            "🗂️ 查看所有帳號",
+            "🗑️ 刪除或停用帳號"
+        ]
         st.session_state["admin_option"] = st.radio(
-            "請選擇功能：", ["📊 查看打卡紀錄", "➕ 新增帳號"],
-            index=["📊 查看打卡紀錄", "➕ 新增帳號"].index(st.session_state["admin_option"])
+            "請選擇功能：", options,
+            index=options.index(st.session_state["admin_option"])
         )
+
 admin_option = st.session_state.get("admin_option", None)
+
+# --- 呼叫各功能 ---
+if is_admin:
+    if admin_option == "➕ 新增帳號":
+        add_user(client, text)
+    elif admin_option == "🗂️ 查看所有帳號":
+        view_all_users(client)
+    elif admin_option == "🗑️ 刪除或停用帳號":
+        delete_or_disable_user(client)
 
 # --- 自動建立當月工作表 ---
 def get_sheet_for(dt):
@@ -153,29 +172,29 @@ if not is_admin:
     if st.button(text["checkin"]):
         check_in()
 
-# --- 管理者新增帳號 ---
-if is_admin and admin_option == "➕ 新增帳號":
-    st.subheader(text["add_user"])
-    with st.form("add_user_form", clear_on_submit=True):
-        new_username = st.text_input(text["new_account"])
-        new_password = st.text_input(text["new_password"], type="password")
-        new_role = st.selectbox(text["new_role"], options=["user", "admin"])
-        enabled = st.checkbox(text["enabled"], value=True)
-        submitted = st.form_submit_button(text["add_user_button"])
-        if submitted:
-            try:
-                user_sheet = client.open("users_login").sheet1
-                existing_users = [row["帳號"] for row in user_sheet.get_all_records()]
-                if new_username in existing_users:
-                    st.warning("⚠️ 此帳號已存在，請使用其他帳號")
-                elif not new_username or not new_password:
-                    st.warning("⚠️ 請輸入完整帳號與密碼")
-                else:
-                    user_sheet.append_row([new_username, new_password, new_role, "Y" if enabled else "N"])
-                    st.success(f"✅ 已新增帳號：{new_username}（角色：{new_role}）")
-                    st.cache_data.clear()
-            except Exception as e:
-                st.error(f"❌ 新增帳號失敗：{e}")
+# # --- 管理者新增帳號 ---
+# if is_admin and admin_option == "➕ 新增帳號":
+#     st.subheader(text["add_user"])
+#     with st.form("add_user_form", clear_on_submit=True):
+#         new_username = st.text_input(text["new_account"])
+#         new_password = st.text_input(text["new_password"], type="password")
+#         new_role = st.selectbox(text["new_role"], options=["user", "admin"])
+#         enabled = st.checkbox(text["enabled"], value=True)
+#         submitted = st.form_submit_button(text["add_user_button"])
+#         if submitted:
+#             try:
+#                 user_sheet = client.open("users_login").sheet1
+#                 existing_users = [row["帳號"] for row in user_sheet.get_all_records()]
+#                 if new_username in existing_users:
+#                     st.warning("⚠️ 此帳號已存在，請使用其他帳號")
+#                 elif not new_username or not new_password:
+#                     st.warning("⚠️ 請輸入完整帳號與密碼")
+#                 else:
+#                     user_sheet.append_row([new_username, new_password, new_role, "Y" if enabled else "N"])
+#                     st.success(f"✅ 已新增帳號：{new_username}（角色：{new_role}）")
+#                     st.cache_data.clear()
+#             except Exception as e:
+#                 st.error(f"❌ 新增帳號失敗：{e}")
 
 # --- 歷史紀錄區塊 ---
 if not is_admin or admin_option == "📊 查看打卡紀錄":
