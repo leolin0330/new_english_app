@@ -18,7 +18,7 @@
     "missing_column": "⚠️ 此表單缺少正確的使用者欄位（帳號或姓名）",
     "sheet_not_found": "❌ 找不到對應月份的工作表：",
     "read_error": "❌ 無法讀取打卡資料：",
-    "download": "📥下載 Excel",
+    "download": "下載 Excel",
     "columns": {
       "姓名": "姓名",
       "日期": "日期",
@@ -43,7 +43,7 @@
     "login_success": "✅ Login successful",
     "login_error": "❌ Incorrect username or password",
     "welcome": "👋 Welcome back: ",
-    "checkin": "✅✅✅ Clock In",
+    "checkin": "✅ Clock In",
     "checkin_success": "🎉 Clock-in success! Time: ",
     "history_title": "📜 My Check-in History (selectable month)",
     "select_month": "Please select a month:",
@@ -52,7 +52,7 @@
     "missing_column": "⚠️ Missing 'username' or 'name' column in the sheet",
     "sheet_not_found": "❌ Worksheet not found for: ",
     "read_error": "❌ Failed to read check-in data: ",
-    "download": "📥Download Excel",
+    "download": "Download Excel",
     "columns": {
       "姓名": "Name",
       "日期": "Date",
@@ -63,7 +63,7 @@
     "add_user": "Add User Account",
     "new_account": "👤Account",
     "new_password": "🔑Password",
-    "now_role": "role",
+    "new_role": "role",
     "enabled": "✅ Enable account",
     "add_user_button": "➕ Add account"
   }
