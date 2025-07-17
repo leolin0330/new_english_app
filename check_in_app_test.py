@@ -119,31 +119,26 @@ st.markdown("### 👇 功能選單")
 
 
 # --- 管理者功能選單（支援語言切換並保持選擇不變）---
+# 選單區
 if is_admin:
+    menu_keys = text["admin_menu_keys"]
+    current_lang = st.session_state["language"]
+
     if "admin_option_key" not in st.session_state:
-        st.session_state["admin_option_key"] = text["admin_menu_keys"][0]
+        st.session_state["admin_option_key"] = menu_keys[0]
 
     with st.sidebar:
         st.header("🛠️ 管理功能")
 
-        # 選單 key 對應功能名稱，不因語言改變
-        menu_keys = text["admin_menu_keys"]
-
-        current_lang = st.session_state["language"]
         if current_lang == "中文":
-            # 根據語言顯示對應的選單文字
-            options = [text["admin_menu_options"][k] for k in menu_keys]
+            options = [text["admin_menu_options"][k].strip() for k in menu_keys]
         else:
-            options = [lang["English"]["admin_menu_options_en"][k] for k in menu_keys]
+            options = [lang["English"]["admin_menu_options_en"][k].strip() for k in menu_keys]
 
         current_key = st.session_state["admin_option_key"]
-        try:
-            default_index = menu_keys.index(current_key)
-        except ValueError:
-            default_index = 0
+        default_index = menu_keys.index(current_key) if current_key in menu_keys else 0
 
         selected_label = st.radio("請選擇功能：", options, index=default_index)
-
         selected_key = menu_keys[options.index(selected_label)]
 
         if selected_key != current_key:
@@ -152,18 +147,16 @@ if is_admin:
 
 
 
+
 # --- 呼叫管理功能 ---
 admin_option_key = st.session_state.get("admin_option_key", "")
 
-if is_admin:
-    from admin_user_management import add_user, view_all_users, delete_or_disable_user
-
-    if admin_option_key == "add_user":
-        add_user(client, text)
-    elif admin_option_key == "view_users":
-        view_all_users(client, text)
-    elif admin_option_key == "delete_user":
-        delete_or_disable_user(client, text)
+if admin_option_key == "add_user":
+    add_user(client, text)
+elif admin_option_key == "view_users":
+    view_all_users(client, text)
+elif admin_option_key == "delete_user":
+    delete_or_disable_user(client, text)
 
 # --- 自動建立當月工作表 ---
 def get_sheet_for(dt):
