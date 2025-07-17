@@ -121,7 +121,7 @@ st.markdown("### 👇 功能選單")
 # --- 管理者功能選單（支援語言切換並保持選擇不變）---
 if is_admin:
     if "admin_option_key" not in st.session_state:
-        st.session_state["admin_option_key"] = "view_records"
+        st.session_state["admin_option_key"] = text["admin_menu_keys"][0]
 
     with st.sidebar:
         st.header("🛠️ 管理功能")
