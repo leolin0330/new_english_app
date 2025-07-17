@@ -31,7 +31,13 @@
     "new_password": "🔑 密碼",
     "new_role": "角色",
     "enabled": "✅ 啟用帳號",
-    "add_user_button": "➕ 新增帳號"
+    "add_user_button": "➕ 新增帳號",
+    "admin_menu_options": [
+      "📊 查看打卡紀錄",
+      "➕ 新增帳號",
+      "🗂️ 查看所有帳號",
+      "🗑️ 刪除或停用帳號"
+    ]
   },
   "English": {
     "title_admin": "🔐 Admin Panel (GCP Clock-in System)",
@@ -65,7 +71,13 @@
     "new_password": "🔑Password",
     "new_role": "role",
     "enabled": "✅ Enable account",
-    "add_user_button": "➕ Add account"
+    "add_user_button": "➕ Add account",
+    "admin_menu_options_en": [
+      "📊 View Records",
+      "➕ Add Account",
+      "🗂️ View All Accounts",
+      "🗑️ Delete or Disable Account"
+    ]
   }
 }
 
