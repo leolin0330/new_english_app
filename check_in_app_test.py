@@ -157,12 +157,12 @@ if not is_admin:
 if is_admin and admin_option == "➕ 新增帳號":
     st.subheader(text["add_user"])
     with st.form("add_user_form", clear_on_submit=True):
-        new_username = st.text_input("👤 新帳號")
-        new_password = st.text_input("🔑 密碼", type="password")
-        new_role = st.selectbox("🧑‍💼 角色", options=["user", "admin"])
-        enabled = st.checkbox("✅ 啟用帳號", value=True)
+        new_username = st.text_input(text["new_account"])
+        new_password = st.text_input(text["new_password"], type="password")
+        new_role = st.selectbox(text["new_role"], options=["user", "admin"])
+        enabled = st.checkbox(text["enabled"], value=True)
 
-        submitted = st.form_submit_button("➕ 新增帳號")
+        submitted = st.form_submit_button(text["add_user_button"])
         if submitted:
             try:
                 user_sheet = client.open("users_login").sheet1
