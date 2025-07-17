@@ -39,6 +39,7 @@ def get_gspread_client():
     return gspread.authorize(credentials)
 
 client = get_gspread_client()
+spreadsheet = client.open("打卡紀錄")
 
 # --- 讀取多語言文字 ---
 @st.cache_resource
@@ -68,7 +69,7 @@ def get_users_from_sheet():
         st.error(f"❌ {text.get('read_error', '無法讀取使用者資料表')}：{e}")
         return {}
 
-is_admin = st.session_state.get("role") == "admin"
+is_admin = st.session_state.get("role", "user") == "admin"
 title_key = "title_admin" if is_admin else "title_user"
 st.set_page_config(page_title=text[title_key], page_icon="🕘")
 
@@ -78,7 +79,7 @@ with col3:
     toggle_lang = "English" if st.session_state["language"] == "中文" else "中文"
     if st.button(toggle_lang):
         st.session_state["language"] = toggle_lang
-        st.experimental_rerun()
+        st.rerun()
 
 st.title(text[title_key])
 
@@ -102,14 +103,14 @@ if not st.session_state["logged_in"]:
                 st.session_state["username"] = username
                 st.session_state["role"] = user_info.get("role", "user")
                 st.toast(text["login_success"], icon="✅")
-                st.experimental_rerun()
+                st.rerun()
     st.stop()
 
 # --- 登出按鈕 ---
 logout_label = "🚪 登出" if st.session_state["language"] == "中文" else "🚪 Logout"
 if st.button(logout_label):
     st.session_state.clear()
-    st.experimental_rerun()
+    st.rerun()
 
 # ✅ 主畫面顯示
 st.success(f"{text['welcome']}{st.session_state['username']}")
@@ -150,13 +151,13 @@ if is_admin:
 
         if chosen_option != st.session_state["admin_option"]:
             st.session_state["admin_option"] = chosen_option
-            st.experimental_rerun()
+            st.rerun()
 
 admin_option = st.session_state.get("admin_option", "")
 
 # --- 呼叫管理功能 ---
 if is_admin:
-    from admin_account_management import add_user, view_all_users, delete_or_disable_user
+    from admin_user_management import add_user, view_all_users, delete_or_disable_user
 
     if admin_option == "➕ 新增帳號":
         add_user(client, text)
