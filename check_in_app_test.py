@@ -208,7 +208,7 @@ if not is_admin:
 #                 st.error(f"❌ 新增帳號失敗：{e}")
 
 # --- 歷史紀錄區塊 ---
-if not is_admin or admin_option == "📊 查看打卡紀錄":
+if not is_admin or admin_option_key == "📊 查看打卡紀錄":
     st.subheader(text["history_title"])
 
     @st.cache_data(ttl=60)
