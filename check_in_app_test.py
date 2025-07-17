@@ -126,29 +126,30 @@ if is_admin:
     with st.sidebar:
         st.header("🛠️ 管理功能")
 
+        # 選單 key 對應功能名稱，不因語言改變
         menu_keys = text["admin_menu_keys"]
-        options_zh = [text["admin_menu_options"][k] for k in menu_keys]
-        options_en = [text["admin_menu_options_en"][k] for k in menu_keys]
 
         current_lang = st.session_state["language"]
-        options = options_zh if current_lang == "中文" else options_en
+        if current_lang == "中文":
+            # 根據語言顯示對應的選單文字
+            options = [text["admin_menu_options"][k] for k in menu_keys]
+        else:
+            options = [lang["English"]["admin_menu_options_en"][k] for k in menu_keys]
 
-        # 取得目前 key 並找出 index
         current_key = st.session_state["admin_option_key"]
         try:
             default_index = menu_keys.index(current_key)
         except ValueError:
             default_index = 0
 
-        # 顯示選單（值是 label）
         selected_label = st.radio("請選擇功能：", options, index=default_index)
 
-        # 取得對應 key
         selected_key = menu_keys[options.index(selected_label)]
 
         if selected_key != current_key:
             st.session_state["admin_option_key"] = selected_key
             st.rerun()
+
 
 
 # --- 呼叫管理功能 ---
