@@ -161,7 +161,6 @@ if is_admin and admin_option == "➕ 新增帳號":
         new_password = st.text_input(text["new_password"], type="password")
         new_role = st.selectbox(text["new_role"], options=["user", "admin"])
         enabled = st.checkbox(text["enabled"], value=True)
-
         submitted = st.form_submit_button(text["add_user_button"])
         if submitted:
             try:
