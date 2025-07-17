@@ -129,28 +129,37 @@ if is_admin:
 
         options_zh = text.get("admin_menu_options", [])
         options_en = text.get("admin_menu_options_en", [])
+        # 用英文顯示選單，但 admin_option 還是記中文
         options = options_zh if st.session_state["language"] == "中文" else options_en
 
-        # 目前選項 index
+        # 中英對照表：英文 → 中文
+        menu_map = dict(zip(options_en, options_zh))
+
+        # 找出目前選項 index
         try:
-            default_index = options.index(st.session_state["admin_option"])
+            current_option = st.session_state["admin_option"]
+            # 若是英文介面，要用英文 index
+            if st.session_state["language"] != "中文":
+                current_option = dict(zip(options_zh, options_en)).get(current_option, options_en[0])
+            default_index = options.index(current_option)
         except ValueError:
             default_index = 0
 
-        # 顯示選單，加入 key 來追蹤是否變更
+        # 顯示選單
         selected_option = st.radio("請選擇功能：", options, index=default_index, key="admin_option_radio")
 
-        # 如果選項變了，就更新 session_state 並 rerun
+        # ⛳ 關鍵：永遠記中文選項在 session_state["admin_option"]
         if selected_option != st.session_state["admin_option"]:
-            st.session_state["admin_option"] = selected_option
+            if st.session_state["language"] == "中文":
+                st.session_state["admin_option"] = selected_option
+            else:
+                st.session_state["admin_option"] = menu_map.get(selected_option, "📊 查看打卡紀錄")
             st.rerun()
+
 
 
 # 取得「實際功能邏輯用的選項名稱」用中文來對應
 admin_option = st.session_state["admin_option"]
-if st.session_state["language"] != "中文":
-    menu_map = dict(zip(text.get("admin_menu_options_en", []), text.get("admin_menu_options", [])))
-    admin_option = menu_map.get(admin_option, "📊 查看打卡紀錄")  # fallback 預設回首頁功能
 
 # --- 呼叫各功能 ---
 if is_admin:
