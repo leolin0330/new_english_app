@@ -117,7 +117,8 @@ st.success(f"{text['welcome']}{st.session_state['username']}")
 st.divider()
 st.markdown("### 👇 功能選單")
 
-# --- 管理者側邊欄 ---
+
+# --- 管理者功能選單（支援語言切換時仍保留相同功能）---
 if is_admin:
     if "admin_option" not in st.session_state:
         st.session_state["admin_option"] = text["admin_menu_options"][0]
@@ -125,33 +126,41 @@ if is_admin:
     with st.sidebar:
         st.header("🛠️ 管理功能")
 
+        # 取得語系選項與對照表
         options_zh = text.get("admin_menu_options", [])
         options_en = text.get("admin_menu_options_en", [])
 
-        options = options_zh if st.session_state["language"] == "中文" else options_en
-
-        # 中英文對照
+        # 建立對照字典
         menu_map_en_to_zh = dict(zip(options_en, options_zh))
         menu_map_zh_to_en = dict(zip(options_zh, options_en))
 
-        # 找目前選項 index，轉成當前語言選項
+        # 根據語言選擇當前顯示選單
+        current_lang = st.session_state["language"]
+        options = options_zh if current_lang == "中文" else options_en
+
+        # 取得目前 admin_option 對應的語言版本
         current_option = st.session_state["admin_option"]
-        if st.session_state["language"] != "中文":
-            current_option = menu_map_zh_to_en.get(current_option, options_en[0])
-        else:
+        if current_lang == "中文":
             if current_option not in options_zh:
                 current_option = options_zh[0]
+        else:
+            current_option = menu_map_zh_to_en.get(current_option, options_en[0])
 
-        default_index = options.index(current_option) if current_option in options else 0
+        # 找到目前選項的 index
+        try:
+            default_index = options.index(current_option)
+        except ValueError:
+            default_index = 0
 
+        # 顯示選單
         selected_option = st.radio("請選擇功能：", options, index=default_index)
 
-        # 儲存中文選項
-        chosen_option = selected_option if st.session_state["language"] == "中文" else menu_map_en_to_zh.get(selected_option, options_zh[0])
-
+        # 儲存為中文標準選項
+        chosen_option = selected_option if current_lang == "中文" else menu_map_en_to_zh.get(selected_option, options_zh[0])
         if chosen_option != st.session_state["admin_option"]:
             st.session_state["admin_option"] = chosen_option
             st.rerun()
+
 
 admin_option = st.session_state.get("admin_option", "")
 
