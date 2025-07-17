@@ -32,12 +32,6 @@
     "new_role": "角色",
     "enabled": "✅ 啟用帳號",
     "add_user_button": "➕ 新增帳號",
-    "admin_menu_options": [
-      "📊 查看打卡紀錄",
-      "➕ 新增帳號",
-      "🗂️ 查看所有帳號",
-      "🗑️ 刪除或停用帳號"
-    ],
     "account_disabled": "⚠️ 該帳號已停用",
     "account_exists": "⚠️ 此帳號已存在，請使用其他帳號",
     "input_required": "⚠️ 請輸入完整帳號與密碼",
@@ -53,7 +47,14 @@
     "execute_action": "✅ 執行操作",
     "deleted_account": "✅ 已刪除帳號",
     "disabled_account": "✅ 已停用帳號",
-    "operation_failed": "❌ 操作失敗"
+    "operation_failed": "❌ 操作失敗",
+    "admin_menu_keys": ["view_records", "add_user", "view_users", "delete_user"],
+    "admin_menu_options": {
+    "view_records": "📊 查看打卡紀錄",
+    "add_user": "➕ 新增帳號",
+    "view_users": "🗂️ 查看所有帳號",
+    "delete_user": "🗑️ 刪除或停用帳號"
+}
   },
   "English": {
     "title_admin": "🔐 Admin Panel (GCP Clock-in System)",
@@ -109,7 +110,14 @@
     "execute_action": "✅ Execute",
     "deleted_account": "✅ Account deleted",
     "disabled_account": "✅ Account disabled",
-    "operation_failed": "❌ Operation failed"
+    "operation_failed": "❌ Operation failed",
+    "admin_menu_keys": ["view_records", "add_user", "view_users", "delete_user"],
+    "admin_menu_options_en": {
+      "view_records": "📊 View Records",
+      "add_user": "➕ Add Account",
+      "view_users": "🗂️ View All Accounts",
+      "delete_user": "🗑️ Delete or Disable Account"
+    }
   }
 }
 

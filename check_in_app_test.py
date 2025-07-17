@@ -118,61 +118,50 @@ st.divider()
 st.markdown("### 👇 功能選單")
 
 
-# --- 管理者功能選單（支援語言切換時仍保留相同功能）---
+# --- 管理者功能選單（支援語言切換並保持選擇不變）---
 if is_admin:
-    if "admin_option" not in st.session_state:
-        st.session_state["admin_option"] = text["admin_menu_options"][0]
+    if "admin_option_key" not in st.session_state:
+        st.session_state["admin_option_key"] = "view_records"
 
     with st.sidebar:
         st.header("🛠️ 管理功能")
 
-        # 取得語系選項與對照表
-        options_zh = text.get("admin_menu_options", [])
-        options_en = text.get("admin_menu_options_en", [])
+        menu_keys = text["admin_menu_keys"]
+        options_zh = [text["admin_menu_options"][k] for k in menu_keys]
+        options_en = [text["admin_menu_options_en"][k] for k in menu_keys]
 
-        # 建立對照字典
-        menu_map_en_to_zh = dict(zip(options_en, options_zh))
-        menu_map_zh_to_en = dict(zip(options_zh, options_en))
-
-        # 根據語言選擇當前顯示選單
         current_lang = st.session_state["language"]
         options = options_zh if current_lang == "中文" else options_en
 
-        # 取得目前 admin_option 對應的語言版本
-        current_option = st.session_state["admin_option"]
-        if current_lang == "中文":
-            if current_option not in options_zh:
-                current_option = options_zh[0]
-        else:
-            current_option = menu_map_zh_to_en.get(current_option, options_en[0])
-
-        # 找到目前選項的 index
+        # 取得目前 key 並找出 index
+        current_key = st.session_state["admin_option_key"]
         try:
-            default_index = options.index(current_option)
+            default_index = menu_keys.index(current_key)
         except ValueError:
             default_index = 0
 
-        # 顯示選單
-        selected_option = st.radio("請選擇功能：", options, index=default_index)
+        # 顯示選單（值是 label）
+        selected_label = st.radio("請選擇功能：", options, index=default_index)
 
-        # 儲存為中文標準選項
-        chosen_option = selected_option if current_lang == "中文" else menu_map_en_to_zh.get(selected_option, options_zh[0])
-        if chosen_option != st.session_state["admin_option"]:
-            st.session_state["admin_option"] = chosen_option
+        # 取得對應 key
+        selected_key = menu_keys[options.index(selected_label)]
+
+        if selected_key != current_key:
+            st.session_state["admin_option_key"] = selected_key
             st.rerun()
 
 
-admin_option = st.session_state.get("admin_option", "")
-
 # --- 呼叫管理功能 ---
+admin_option_key = st.session_state.get("admin_option_key", "")
+
 if is_admin:
     from admin_user_management import add_user, view_all_users, delete_or_disable_user
 
-    if admin_option == "➕ 新增帳號":
+    if admin_option_key == "add_user":
         add_user(client, text)
-    elif admin_option == "🗂️ 查看所有帳號":
+    elif admin_option_key == "view_users":
         view_all_users(client, text)
-    elif admin_option == "🗑️ 刪除或停用帳號":
+    elif admin_option_key == "delete_user":
         delete_or_disable_user(client, text)
 
 # --- 自動建立當月工作表 ---
