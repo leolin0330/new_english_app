@@ -26,7 +26,12 @@
     },
     "all_users_label": "所有人",
     "file_label": "打卡紀錄",
-    "add_user": "新增使用者帳號"
+    "add_user": "新增使用者帳號",
+    "new_account": "👤 帳號",
+    "new_password": "🔑 密碼",
+    "new_role": "角色",
+    "enabled": "✅ 啟用帳號",
+    "add_user_button": "➕ 新增帳號"
   },
   "English": {
     "title_admin": "🔐 Admin Panel (GCP Clock-in System)",
@@ -38,7 +43,7 @@
     "login_success": "✅ Login successful",
     "login_error": "❌ Incorrect username or password",
     "welcome": "👋 Welcome back: ",
-    "checkin": "✅ Clock In",
+    "checkin": "✅✅✅ Clock In",
     "checkin_success": "🎉 Clock-in success! Time: ",
     "history_title": "📜 My Check-in History (selectable month)",
     "select_month": "Please select a month:",
@@ -55,6 +60,12 @@
     },
     "all_users_label": "All",
     "file_label": "Check-in Record",
-    "add_user": "Add User Account"
+    "add_user": "Add User Account",
+    "new_account": "👤Account",
+    "new_password": "🔑Password",
+    "now_role": "role",
+    "enabled": "✅ Enable account",
+    "add_user_button": "➕ Add account"
   }
 }
+
