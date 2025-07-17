@@ -18,6 +18,8 @@ if "logged_in" not in st.session_state:
     st.session_state["logged_in"] = False
 if "username" not in st.session_state:
     st.session_state["username"] = ""
+if "role" not in st.session_state:
+    st.session_state["role"] = "user"
 
 # --- 快取 Secret ---
 @st.cache_resource
@@ -37,9 +39,17 @@ def get_gspread_client():
     return gspread.authorize(credentials)
 
 client = get_gspread_client()
-spreadsheet = client.open("打卡紀錄")
 
-# --- 使用者資訊快取 ---
+# --- 讀取多語言文字 ---
+@st.cache_resource
+def load_translation_json(url: str):
+    response = requests.get(url)
+    return response.json()
+
+lang = load_translation_json("https://raw.githubusercontent.com/leolin0330/new_english_app/main/lang_config.json")
+text = lang[st.session_state["language"]]
+
+# --- 使用者資料快取 ---
 @st.cache_data(ttl=30)
 def get_users_from_sheet():
     try:
@@ -55,20 +65,10 @@ def get_users_from_sheet():
             }
         return users_dict
     except Exception as e:
-        st.error(f"❌ 無法讀取使用者資料表：{e}")
+        st.error(f"❌ {text.get('read_error', '無法讀取使用者資料表')}：{e}")
         return {}
 
-@st.cache_resource
-def load_translation_json(url: str):
-    response = requests.get(url)
-    return response.json()
-
-# --- 語系文字 ---
 is_admin = st.session_state.get("role") == "admin"
-
-lang = load_translation_json("https://raw.githubusercontent.com/leolin0330/new_english_app/main/lang_config.json")
-
-text = lang[st.session_state["language"]]
 title_key = "title_admin" if is_admin else "title_user"
 st.set_page_config(page_title=text[title_key], page_icon="🕘")
 
@@ -78,97 +78,92 @@ with col3:
     toggle_lang = "English" if st.session_state["language"] == "中文" else "中文"
     if st.button(toggle_lang):
         st.session_state["language"] = toggle_lang
-        st.rerun()
+        st.experimental_rerun()
 
 st.title(text[title_key])
 
 users = get_users_from_sheet()
 
-
-    # --- 登入流程 ---
+# --- 登入流程 ---
 if not st.session_state["logged_in"]:
     username = st.text_input(text["username"])
     password = st.text_input(text["password"], type="password")
     if st.button(text["login"]):
         if username not in users:
-            st.error(text["login_error"])
+            st.error(text["login_error"])  # 你這份翻譯中沒有細分錯誤，統一用 login_error
         else:
             user_info = users[username]
             if not user_info["enabled"]:
-                st.error("⚠️ 該帳號已停用")
-            elif user_info["password"] == password:
+                st.error(text.get("account_disabled", "⚠️ 該帳號已停用"))
+            elif user_info["password"] != password:
+                st.error(text["login_error"])
+            else:
                 st.session_state["logged_in"] = True
                 st.session_state["username"] = username
                 st.session_state["role"] = user_info.get("role", "user")
-                st.success(text["login_success"])
-                st.rerun()
-            else:
-                st.error(text["login_error"])
+                st.toast(text["login_success"], icon="✅")
+                st.experimental_rerun()
     st.stop()
 
-
 # --- 登出按鈕 ---
-if st.button("🚪 登出" if st.session_state["language"] == "中文" else "🚪 Logout"):
+logout_label = "🚪 登出" if st.session_state["language"] == "中文" else "🚪 Logout"
+if st.button(logout_label):
     st.session_state.clear()
-    st.rerun()
+    st.experimental_rerun()
 
-# ✅ 這邊開始主畫面顯示使用者歡迎詞與功能
+# ✅ 主畫面顯示
 st.success(f"{text['welcome']}{st.session_state['username']}")
 st.divider()
 st.markdown("### 👇 功能選單")
 
-
-
-# --- 管理者功能側邊欄（支援中英文選單） ---
+# --- 管理者側邊欄 ---
 if is_admin:
     if "admin_option" not in st.session_state:
-        st.session_state["admin_option"] = "📊 查看打卡紀錄"
+        st.session_state["admin_option"] = text["admin_menu_options"][0]
 
     with st.sidebar:
         st.header("🛠️ 管理功能")
 
         options_zh = text.get("admin_menu_options", [])
         options_en = text.get("admin_menu_options_en", [])
-        # 用英文顯示選單，但 admin_option 還是記中文
+
         options = options_zh if st.session_state["language"] == "中文" else options_en
 
-        # 中英對照表：英文 → 中文
-        menu_map = dict(zip(options_en, options_zh))
+        # 中英文對照
+        menu_map_en_to_zh = dict(zip(options_en, options_zh))
+        menu_map_zh_to_en = dict(zip(options_zh, options_en))
 
-        # 找出目前選項 index
-        try:
-            current_option = st.session_state["admin_option"]
-            # 若是英文介面，要用英文 index
-            if st.session_state["language"] != "中文":
-                current_option = dict(zip(options_zh, options_en)).get(current_option, options_en[0])
-            default_index = options.index(current_option)
-        except ValueError:
-            default_index = 0
+        # 找目前選項 index，轉成當前語言選項
+        current_option = st.session_state["admin_option"]
+        if st.session_state["language"] != "中文":
+            current_option = menu_map_zh_to_en.get(current_option, options_en[0])
+        else:
+            if current_option not in options_zh:
+                current_option = options_zh[0]
 
-        # 顯示選單
-        selected_option = st.radio("請選擇功能：", options, index=default_index, key="admin_option_radio")
+        default_index = options.index(current_option) if current_option in options else 0
 
-        # ⛳ 關鍵：永遠記中文選項在 session_state["admin_option"]
-        if selected_option != st.session_state["admin_option"]:
-            if st.session_state["language"] == "中文":
-                st.session_state["admin_option"] = selected_option
-            else:
-                st.session_state["admin_option"] = menu_map.get(selected_option, "📊 查看打卡紀錄")
-            st.rerun()
+        selected_option = st.radio("請選擇功能：", options, index=default_index)
 
+        # 儲存中文選項
+        chosen_option = selected_option if st.session_state["language"] == "中文" else menu_map_en_to_zh.get(selected_option, options_zh[0])
 
+        if chosen_option != st.session_state["admin_option"]:
+            st.session_state["admin_option"] = chosen_option
+            st.experimental_rerun()
 
-# 取得「實際功能邏輯用的選項名稱」用中文來對應
-admin_option = st.session_state["admin_option"]
+admin_option = st.session_state.get("admin_option", "")
 
-# --- 呼叫各功能 ---
+# --- 呼叫管理功能 ---
 if is_admin:
+    from admin_account_management import add_user, view_all_users, delete_or_disable_user
+
     if admin_option == "➕ 新增帳號":
         add_user(client, text)
     elif admin_option == "🗂️ 查看所有帳號":
-        view_all_users(client)
+        view_all_users(client, text)
     elif admin_option == "🗑️ 刪除或停用帳號":
-        delete_or_disable_user(client)
+        delete_or_disable_user(client, text)
 
 # --- 自動建立當月工作表 ---
 def get_sheet_for(dt):

@@ -37,7 +37,23 @@
       "➕ 新增帳號",
       "🗂️ 查看所有帳號",
       "🗑️ 刪除或停用帳號"
-    ]
+    ],
+    "account_disabled": "⚠️ 該帳號已停用",
+    "account_exists": "⚠️ 此帳號已存在，請使用其他帳號",
+    "input_required": "⚠️ 請輸入完整帳號與密碼",
+    "add_user_success": "✅ 已新增帳號",
+    "add_user_failed": "❌ 新增帳號失敗",
+    "all_users": "👥 所有使用者帳號",
+    "no_users": "尚無使用者資料",
+    "delete_disable_user": "🗑️ 刪除或停用帳號",
+    "select_account": "請選擇帳號",
+    "choose_action": "選擇操作",
+    "delete_account": "刪除帳號",
+    "disable_account": "停用帳號",
+    "execute_action": "✅ 執行操作",
+    "deleted_account": "✅ 已刪除帳號",
+    "disabled_account": "✅ 已停用帳號",
+    "operation_failed": "❌ 操作失敗"
   },
   "English": {
     "title_admin": "🔐 Admin Panel (GCP Clock-in System)",
@@ -77,7 +93,23 @@
       "➕ Add Account",
       "🗂️ View All Accounts",
       "🗑️ Delete or Disable Account"
-    ]
+    ],
+    "account_disabled": "⚠️ Account is disabled",
+    "account_exists": "⚠️ This account already exists, please use another",
+    "input_required": "⚠️ Please enter complete username and password",
+    "add_user_success": "✅ Account added",
+    "add_user_failed": "❌ Failed to add account",
+    "all_users": "👥 All User Accounts",
+    "no_users": "No user data",
+    "delete_disable_user": "🗑️ Delete or Disable Account",
+    "select_account": "Select Account",
+    "choose_action": "Choose Action",
+    "delete_account": "Delete Account",
+    "disable_account": "Disable Account",
+    "execute_action": "✅ Execute",
+    "deleted_account": "✅ Account deleted",
+    "disabled_account": "✅ Account disabled",
+    "operation_failed": "❌ Operation failed"
   }
 }
 
