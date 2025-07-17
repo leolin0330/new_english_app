@@ -77,7 +77,7 @@ def delete_or_disable_user(client, text):
                         break
 
             st.cache_data.clear()
-            st.experimental_rerun()
+            st.rerun()
 
     except Exception as e:
         st.error(f"{text.get('operation_failed', '❌ 操作失敗')}：{e}")
