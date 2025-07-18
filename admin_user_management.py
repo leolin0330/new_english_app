@@ -96,6 +96,7 @@ def manage_user_status(client, text):
 
 
 def manage_accounts(client, text):
+    # 用 session_state 控制選單記憶
     if "account_tab" not in st.session_state:
         st.session_state["account_tab"] = "add"
 
@@ -105,26 +106,23 @@ def manage_accounts(client, text):
         "status": text.get("manage_user_status", "帳號狀態管理")
     }
 
-    # 直接用 key 作為選項，顯示文字作為 label
-    key_options = list(tab_labels.keys())
-    display_options = [tab_labels[k] for k in key_options]
+    # 🔧 selectbox 顯示文字，但傳回的是 key（乾淨俐落）
+    selected_key = st.selectbox(
+        "📁 功能選單",
+        options=list(tab_labels.keys()),
+        format_func=lambda key: tab_labels[key],
+        index=list(tab_labels.keys()).index(st.session_state["account_tab"])
+    )
 
-    # 找目前 key 的 index
-    current_index = key_options.index(st.session_state["account_tab"])
+    # 只有當選擇改變時才更新狀態並 rerun
+    if selected_key != st.session_state["account_tab"]:
+        st.session_state["account_tab"] = selected_key
+        st.rerun()
 
-    # selectbox：顯示文字，實際選 key
-    selected_index = st.selectbox("📁 功能選單", range(len(display_options)),
-                                  format_func=lambda i: display_options[i],
-                                  index=current_index)
-
-    selected_key = key_options[selected_index]
-    st.session_state["account_tab"] = selected_key
-
-
+    # 顯示功能
     if selected_key == "add":
         add_user(client, text)
     elif selected_key == "view":
         view_all_users(client, text)
     elif selected_key == "status":
         manage_user_status(client, text)
-
