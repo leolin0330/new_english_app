@@ -42,8 +42,9 @@ def view_all_users(client, text):
     except Exception as e:
         st.error(f"{text.get('read_error', '❌ 無法讀取帳號資料')}：{e}")
 
-def delete_or_disable_user(client, text):
-    st.subheader(text.get("delete_disable_user", "🗑️ 刪除或停用帳號"))
+def manage_user_status(client, text):
+    st.subheader(text.get("manage_user_status", "👤 帳號狀態管理"))
+
     try:
         user_sheet = client.open("users_login").sheet1
         users_data = user_sheet.get_all_records()
@@ -54,14 +55,21 @@ def delete_or_disable_user(client, text):
             return
 
         selected_account = st.selectbox(text.get("select_account", "請選擇帳號"), df_users["帳號"].tolist())
-        action = st.radio(text.get("choose_action", "選擇操作"), [text.get("delete_account", "刪除帳號"), text.get("disable_account", "停用帳號")])
+        action = st.radio(
+            text.get("choose_action", "選擇操作"),
+            [
+                text.get("enable_account", "✅ 啟用帳號"),
+                text.get("disable_account", "🚫 停用帳號"),
+                text.get("delete_account", "🗑️ 刪除帳號")
+            ]
+        )
 
         if st.button(text.get("execute_action", "✅ 執行操作")):
             all_rows = user_sheet.get_all_values()
             header = all_rows[0]
             rows = all_rows[1:]
 
-            if action == text.get("delete_account", "刪除帳號"):
+            if action == text.get("delete_account", "🗑️ 刪除帳號"):
                 new_rows = [row for row in rows if row[0] != selected_account]
                 user_sheet.clear()
                 user_sheet.append_row(header)
@@ -69,11 +77,18 @@ def delete_or_disable_user(client, text):
                     user_sheet.append_row(row)
                 st.toast(f"{text.get('deleted_account', '✅ 已刪除帳號')}：{selected_account}", icon="✅")
 
-            elif action == text.get("disable_account", "停用帳號"):
-                for i, row in enumerate(rows, start=2):  # Google Sheets 從2開始是資料列
+            elif action == text.get("disable_account", "🚫 停用帳號"):
+                for i, row in enumerate(rows, start=2):
                     if row[0] == selected_account:
-                        user_sheet.update_cell(i, 4, "N")  # 第4欄是「是否啟用」
-                        st.toast(f"{text.get('disabled_account', '✅ 已停用帳號')}：{selected_account}", icon="✅")
+                        user_sheet.update_cell(i, 4, "N")
+                        st.toast(f"{text.get('disabled_account', '✅ 已停用帳號')}：{selected_account}", icon="🚫")
+                        break
+
+            elif action == text.get("enable_account", "✅ 啟用帳號"):
+                for i, row in enumerate(rows, start=2):
+                    if row[0] == selected_account:
+                        user_sheet.update_cell(i, 4, "Y")
+                        st.toast(f"{text.get('enabled_account', '✅ 已啟用帳號')}：{selected_account}", icon="✅")
                         break
 
             st.cache_data.clear()
@@ -82,18 +97,19 @@ def delete_or_disable_user(client, text):
     except Exception as e:
         st.error(f"{text.get('operation_failed', '❌ 操作失敗')}：{e}")
 
+
 # 整合用的函式
 def manage_accounts(client, text):
     st.subheader("👤 " + text.get("account_management", "帳號管理"))
     tab1, tab2, tab3 = st.tabs([
         text.get("add_user", "新增帳號"),
         text.get("all_users", "所有使用者帳號"),
-        text.get("delete_disable_user", "刪除或停用帳號")
+        text.get("manage_user_status", "帳號狀態管理")
     ])
     with tab1:
         add_user(client, text)
     with tab2:
         view_all_users(client, text)
     with tab3:
-        delete_or_disable_user(client, text)
+        manage_user_status(client, text)
 

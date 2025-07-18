@@ -52,7 +52,10 @@
     "admin_menu_options": {
       "view_records": "📊 查看打卡紀錄",
       "manage_accounts": "👤 帳號管理"
-}
+    },
+    "manage_user_status": "👤 帳號狀態管理",
+    "enable_account": "✅ 啟用帳號",
+    "enabled_account": "✅ 已啟用帳號"
   },
   "English": {
     "title_admin": "🔐 Admin Panel (GCP Clock-in System)",
@@ -113,7 +116,10 @@
     "admin_menu_options_en": {
       "view_records": "📊 View Records",
       "manage_accounts": "👤 Account Management"
-    }
+    },
+    "manage_user_status": "👤 Account Status Management",
+    "enable_account": "✅ Enable Account",
+    "enabled_account": "✅ Account enabled"
   }
 }
 
