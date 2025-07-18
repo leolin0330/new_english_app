@@ -94,6 +94,7 @@ def manage_user_status(client, text):
     except Exception as e:
         st.error(f"{text.get('operation_failed', '❌ 操作失敗')}：{e}")
 
+
 def manage_accounts(client, text):
     if "account_tab" not in st.session_state:
         st.session_state["account_tab"] = "add"
@@ -104,11 +105,19 @@ def manage_accounts(client, text):
         "status": text.get("manage_user_status", "帳號狀態管理")
     }
 
-    # 📱 更適合手機的下拉式選單
-    selected_label = st.selectbox("📁 功能選單", list(tab_labels.values()))
+    # 直接用 key 作為選項，顯示文字作為 label
+    key_options = list(tab_labels.keys())
+    display_options = [tab_labels[k] for k in key_options]
 
-    # 對應回選項 key
-    selected_key = [k for k, v in tab_labels.items() if v == selected_label][0]
+    # 找目前 key 的 index
+    current_index = key_options.index(st.session_state["account_tab"])
+
+    # selectbox：顯示文字，實際選 key
+    selected_index = st.selectbox("📁 功能選單", range(len(display_options)),
+                                  format_func=lambda i: display_options[i],
+                                  index=current_index)
+
+    selected_key = key_options[selected_index]
     st.session_state["account_tab"] = selected_key
 
     st.subheader("👤 " + tab_labels[selected_key])
