@@ -95,15 +95,29 @@ def manage_user_status(client, text):
         st.error(f"{text.get('operation_failed', '❌ 操作失敗')}：{e}")
 
 def manage_accounts(client, text):
-    st.subheader("👤 " + text.get("account_management", "帳號管理"))
-    tab1, tab2, tab3 = st.tabs([
-        text.get("add_user", "新增帳號"),
-        text.get("all_users", "所有使用者帳號"),
-        text.get("manage_user_status", "帳號狀態管理")
-    ])
-    with tab1:
+    # 初始化 tab 狀態
+    if "account_tab" not in st.session_state:
+        st.session_state["account_tab"] = "add"
+
+    tab_options = {
+        "add": text.get("add_user", "新增帳號"),
+        "view": text.get("all_users", "所有使用者帳號"),
+        "status": text.get("manage_user_status", "帳號狀態管理")
+    }
+
+    selected_tab_label = st.radio("📁 功能選單", list(tab_options.values()),
+                                  index=list(tab_options).index(st.session_state["account_tab"]))
+
+    # 反查目前選到哪個 tab key
+    selected_tab_key = [k for k, v in tab_options.items() if v == selected_tab_label][0]
+    st.session_state["account_tab"] = selected_tab_key
+
+    st.subheader("👤 " + tab_options[selected_tab_key])
+
+    # 顯示對應的內容
+    if selected_tab_key == "add":
         add_user(client, text)
-    with tab2:
+    elif selected_tab_key == "view":
         view_all_users(client, text)
-    with tab3:
+    elif selected_tab_key == "status":
         manage_user_status(client, text)
