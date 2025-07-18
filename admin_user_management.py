@@ -26,7 +26,7 @@ def add_user(client, text):
                 st.error(f"{text.get('add_user_failed', '❌ 新增帳號失敗')}：{e}")
 
 def view_all_users(client, text):
-    st.subheader(text.get("all_users", "👥 所有使用者帳號"))
+    st.subheader(text.get("all_users", "所有使用者帳號"))
     try:
         user_sheet = client.open("users_login").sheet1
         df_users = pd.DataFrame(user_sheet.get_all_records())
