@@ -1,3 +1,4 @@
+
 import streamlit as st
 import pandas as pd
 
@@ -34,9 +35,9 @@ def view_all_users(client, text):
         else:
             df_users_display = df_users.rename(columns={
                 "帳號": text.get("username", "帳號"),
-                "密碼": text.get("password", "密碼"),
-                "角色": text.get("new_role", "角色"),
-                "是否啟用": text.get("enabled", "是否啟用")
+                "密碼": text["password"],
+                "角色": text["new_role"],
+                "是否啟用": text["enabled"]
             })
             st.dataframe(df_users_display)
     except Exception as e:
@@ -44,7 +45,6 @@ def view_all_users(client, text):
 
 def manage_user_status(client, text):
     st.subheader(text.get("manage_user_status", "👤 帳號狀態管理"))
-
     try:
         user_sheet = client.open("users_login").sheet1
         users_data = user_sheet.get_all_records()
@@ -55,14 +55,11 @@ def manage_user_status(client, text):
             return
 
         selected_account = st.selectbox(text.get("select_account", "請選擇帳號"), df_users["帳號"].tolist())
-        action = st.radio(
-            text.get("choose_action", "選擇操作"),
-            [
-                text.get("enable_account", "✅ 啟用帳號"),
-                text.get("disable_account", "🚫 停用帳號"),
-                text.get("delete_account", "🗑️ 刪除帳號")
-            ]
-        )
+        action = st.radio(text.get("choose_action", "選擇操作"), [
+            text.get("enable_account", "✅ 啟用帳號"),
+            text.get("disable_account", "🚫 停用帳號"),
+            text.get("delete_account", "🗑️ 刪除帳號")
+        ])
 
         if st.button(text.get("execute_action", "✅ 執行操作")):
             all_rows = user_sheet.get_all_values()
@@ -97,8 +94,6 @@ def manage_user_status(client, text):
     except Exception as e:
         st.error(f"{text.get('operation_failed', '❌ 操作失敗')}：{e}")
 
-
-# 整合用的函式
 def manage_accounts(client, text):
     st.subheader("👤 " + text.get("account_management", "帳號管理"))
     tab1, tab2, tab3 = st.tabs([
@@ -112,4 +107,3 @@ def manage_accounts(client, text):
         view_all_users(client, text)
     with tab3:
         manage_user_status(client, text)
-
