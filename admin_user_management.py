@@ -120,7 +120,6 @@ def manage_accounts(client, text):
     selected_key = key_options[selected_index]
     st.session_state["account_tab"] = selected_key
 
-    st.subheader("👤 " + tab_labels[selected_key])
 
     if selected_key == "add":
         add_user(client, text)
