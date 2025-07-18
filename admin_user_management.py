@@ -81,3 +81,19 @@ def delete_or_disable_user(client, text):
 
     except Exception as e:
         st.error(f"{text.get('operation_failed', '❌ 操作失敗')}：{e}")
+
+# 整合用的函式
+def manage_accounts(client, text):
+    st.subheader("👤 " + text.get("account_management", "帳號管理"))
+    tab1, tab2, tab3 = st.tabs([
+        text.get("add_user", "新增帳號"),
+        text.get("all_users", "所有使用者帳號"),
+        text.get("delete_disable_user", "刪除或停用帳號")
+    ])
+    with tab1:
+        add_user(client, text)
+    with tab2:
+        view_all_users(client, text)
+    with tab3:
+        delete_or_disable_user(client, text)
+

@@ -7,7 +7,7 @@ import io
 from google.cloud import secretmanager
 import json
 import requests
-from admin_user_management import add_user, view_all_users, delete_or_disable_user
+from admin_user_management import add_user, view_all_users, delete_or_disable_user,manage_accounts
 
 
 
@@ -269,12 +269,8 @@ if not is_admin:
 # --- 管理功能選單 ---
 if admin_option_key == "view_records":
     show_checkin_records()
-elif admin_option_key == "add_user":
-    add_user(client, text)
-elif admin_option_key == "view_users":
-    view_all_users(client, text)
-elif admin_option_key == "delete_user":
-    delete_or_disable_user(client, text)
+elif admin_option_key == "manage_accounts":
+    manage_accounts(client, text)
 
 # --- 如果是一般使用者，顯示紀錄 ---
 if not is_admin:
