@@ -104,23 +104,19 @@ def manage_accounts(client, text):
         "status": text.get("manage_user_status", "帳號狀態管理")
     }
 
-    st.markdown("### 📁 功能選單")
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        if st.button(tab_labels["add"]):
-            st.session_state["account_tab"] = "add"
-    with col2:
-        if st.button(tab_labels["view"]):
-            st.session_state["account_tab"] = "view"
-    with col3:
-        if st.button(tab_labels["status"]):
-            st.session_state["account_tab"] = "status"
+    # 📱 更適合手機的下拉式選單
+    selected_label = st.selectbox("📁 功能選單", list(tab_labels.values()))
 
-    st.subheader("👤 " + tab_labels[st.session_state["account_tab"]])
+    # 對應回選項 key
+    selected_key = [k for k, v in tab_labels.items() if v == selected_label][0]
+    st.session_state["account_tab"] = selected_key
 
-    if st.session_state["account_tab"] == "add":
+    st.subheader("👤 " + tab_labels[selected_key])
+
+    if selected_key == "add":
         add_user(client, text)
-    elif st.session_state["account_tab"] == "view":
+    elif selected_key == "view":
         view_all_users(client, text)
-    elif st.session_state["account_tab"] == "status":
+    elif selected_key == "status":
         manage_user_status(client, text)
+
