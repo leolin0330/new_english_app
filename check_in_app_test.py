@@ -112,7 +112,7 @@ if st.button(logout_label):
 
 st.success(f"{text['welcome']}{st.session_state['username']}")
 st.divider()
-st.markdown("###" + text["main_menu_title"])
+st.markdown("### " + text["main_menu_title"])
 
 # --- 管理者功能選單 ---
 if is_admin:
