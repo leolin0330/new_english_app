@@ -108,7 +108,7 @@ def manage_accounts(client, text):
 
     # 🔧 selectbox 顯示文字，但傳回的是 key（乾淨俐落）
     selected_key = st.selectbox(
-        "📁 功能選單",
+        text["main_menu_title"],
         options=list(tab_labels.keys()),
         format_func=lambda key: tab_labels[key],
         index=list(tab_labels.keys()).index(st.session_state["account_tab"])

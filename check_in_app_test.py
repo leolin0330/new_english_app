@@ -112,7 +112,7 @@ if st.button(logout_label):
 
 st.success(f"{text['welcome']}{st.session_state['username']}")
 st.divider()
-st.markdown("### 👇 功能選單")
+st.markdown("###" + text["main_menu_title"])
 
 # --- 管理者功能選單 ---
 if is_admin:
@@ -123,7 +123,7 @@ if is_admin:
         st.session_state["admin_option_key"] = menu_keys[0]
 
     with st.sidebar:
-        st.header("🛠️ 管理功能")
+        st.header(text["admin_sidebar_header"])
 
         if current_lang == "中文":
             options = [text["admin_menu_options"][k].strip() for k in menu_keys]
@@ -133,7 +133,7 @@ if is_admin:
         current_key = st.session_state["admin_option_key"]
         default_index = menu_keys.index(current_key) if current_key in menu_keys else 0
 
-        selected_label = st.radio("請選擇功能：", options, index=default_index)
+        selected_label = st.radio(text["select_function"], options, index=default_index)
         selected_key = menu_keys[options.index(selected_label)]
 
         if selected_key != current_key:

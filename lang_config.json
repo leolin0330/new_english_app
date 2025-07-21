@@ -56,7 +56,10 @@
     "account_management": "帳號管理",
     "manage_user_status": "帳號狀態管理",
     "enable_account": "✅ 啟用帳號",
-    "enabled_account": "✅ 已啟用帳號"
+    "enabled_account": "✅ 已啟用帳號",
+    "admin_sidebar_header": "🛠️ 管理功能",
+    "select_function": "請選擇功能：",
+    "main_menu_title": "📂 功能選單"
   },
   "English": {
     "title_admin": "🔐 Admin Panel (GCP Clock-in System)",
@@ -121,7 +124,10 @@
     "account_management": "Account Management",
     "manage_user_status": "Account Status Management",
     "enable_account": "✅ Enable Account",
-    "enabled_account": "✅ Account enabled"
+    "enabled_account": "✅ Account enabled",
+    "admin_sidebar_header": "🛠️ Admin Functions",
+    "select_function": "Select a function:",
+    "main_menu_title": "📂 Main Menu"
   }
 }
 
