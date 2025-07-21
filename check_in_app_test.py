@@ -4,12 +4,10 @@ from google.oauth2.service_account import Credentials
 import gspread
 import pandas as pd
 import io
-from google.cloud import secretmanager
 import json
 import requests
+from google.cloud import secretmanager
 from admin_user_management import manage_accounts
-
-
 
 # --- 語言與登入狀態初始化 ---
 if "language" not in st.session_state:
@@ -91,7 +89,7 @@ if not st.session_state["logged_in"]:
     password = st.text_input(text["password"], type="password")
     if st.button(text["login"]):
         if username not in users:
-            st.error(text["login_error"])  # 你這份翻譯中沒有細分錯誤，統一用 login_error
+            st.error(text["login_error"])
         else:
             user_info = users[username]
             if not user_info["enabled"]:
@@ -112,14 +110,11 @@ if st.button(logout_label):
     st.session_state.clear()
     st.rerun()
 
-# ✅ 主畫面顯示
 st.success(f"{text['welcome']}{st.session_state['username']}")
 st.divider()
 st.markdown("### 👇 功能選單")
 
-
-# --- 管理者功能選單（支援語言切換並保持選擇不變）---
-# 選單區
+# --- 管理者功能選單 ---
 if is_admin:
     menu_keys = text["admin_menu_keys"]
     current_lang = st.session_state["language"]
@@ -145,10 +140,6 @@ if is_admin:
             st.session_state["admin_option_key"] = selected_key
             st.rerun()
 
-
-
-
-# --- 呼叫管理功能 ---
 admin_option_key = st.session_state.get("admin_option_key", "")
 
 # --- 自動建立當月工作表 ---
@@ -161,7 +152,6 @@ def get_sheet_for(dt):
         worksheet.append_row(["姓名", "日期", "時間"])
         return worksheet
 
-# --- 打卡功能 ---
 def check_in():
     now = datetime.utcnow() + timedelta(hours=8)
     date = now.strftime("%Y/%m/%d")
@@ -171,7 +161,6 @@ def check_in():
     st.success(f"{text['checkin_success']}{date} {time}")
     st.rerun()
 
-# --- 查看打卡紀錄（重構版） ---
 def show_checkin_records():
     st.subheader(text["history_title"])
 
@@ -204,7 +193,6 @@ def show_checkin_records():
         header, *rows = records
         df = pd.DataFrame(rows, columns=header)
 
-        # 判斷帳號欄位
         if "帳號" in df.columns:
             key_col = "帳號"
         elif "姓名" in df.columns:
@@ -241,7 +229,6 @@ def show_checkin_records():
         df_display = df.drop(columns=["打卡時間"]).rename(columns=column_map)
         st.table(df_display)
 
-        # 管理員可下載 Excel
         if is_admin:
             excel_buffer = io.BytesIO()
             df_display.to_excel(excel_buffer, index=False, sheet_name=selected_month)
@@ -261,18 +248,14 @@ def show_checkin_records():
     except Exception as e:
         st.error(f"{text['read_error']}{e}")
 
-# --- 一般使用者打卡按鈕 ---
 if not is_admin:
     if st.button(text["checkin"]):
         check_in()
 
-# --- 管理功能選單 ---
 if admin_option_key == "view_records":
     show_checkin_records()
 elif admin_option_key == "manage_accounts":
     manage_accounts(client, text)
 
-# --- 如果是一般使用者，顯示紀錄 ---
 if not is_admin:
     show_checkin_records()
-
