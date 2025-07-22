@@ -1,12 +1,17 @@
-PROJECT_ID=englisg-checkin
-SERVICE_NAME=english-checkin-docker
+# 使用 Python 精簡映像檔
+FROM python:3.10-slim
 
-# 1. 建立並上傳映像
-gcloud builds submit --tag asia-east1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/$SERVICE_NAME
+# 設定工作目錄
+WORKDIR /app
 
-# 2. 部署到 Cloud Run
-gcloud run deploy $SERVICE_NAME \
-  --image=asia-east1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/$SERVICE_NAME \
-  --region=asia-east1 \
-  --platform=managed \
-  --allow-unauthenticated
+# 複製專案內容到容器內
+COPY . .
+
+# 安裝所需套件
+RUN pip install --no-cache-dir -r requirements.txt
+
+# 預設 port 為 Cloud Run 用的 8080
+EXPOSE 8080
+
+# 執行 Streamlit 主程式
+CMD ["streamlit", "run", "check_in_app_test.py", "--server.port=8080", "--server.enableCORS=false"]
