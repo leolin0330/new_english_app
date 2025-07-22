@@ -1,13 +1,12 @@
-FROM python:3.10-slim
+PROJECT_ID=englisg-checkin
+SERVICE_NAME=english-checkin-docker
 
-WORKDIR /app
+# 1. 建立並上傳映像
+gcloud builds submit --tag asia-east1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/$SERVICE_NAME
 
-COPY requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
-
-COPY . .
-
-
-EXPOSE 8501
-
-CMD ["sh", "-c", "streamlit run check_in_app.py --server.port=${PORT:-8501} --server.address=0.0.0.0"]
+# 2. 部署到 Cloud Run
+gcloud run deploy $SERVICE_NAME \
+  --image=asia-east1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/$SERVICE_NAME \
+  --region=asia-east1 \
+  --platform=managed \
+  --allow-unauthenticated
