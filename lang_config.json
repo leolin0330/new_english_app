@@ -94,7 +94,7 @@
     "new_role": "role",
     "enabled": "✅ Enable account",
     "add_user_button": "➕ Add account",
-    "admin_menu_options_en": [
+    "admin_menu_options": [
       "📊 View Records",
       "➕ Add Account",
       "🗂️ View All Accounts",
@@ -117,7 +117,7 @@
     "disabled_account": "✅ Account disabled",
     "operation_failed": "❌ Operation failed",
     "admin_menu_keys": ["view_records", "manage_accounts"],
-    "admin_menu_options_en": {
+    "admin_menu_options": {
         "view_records": "📊 View Records",
         "manage_accounts": "👤 Account Management"
     },
