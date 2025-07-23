@@ -97,48 +97,19 @@ def login_flow():
 toggle_lang = "English" if st.session_state["language"] == "中文" else "中文"
 logout_label = "🚪 登出" if st.session_state["language"] == "中文" else "🚪 Logout"
 
-# 以 form POST 傳遞按鈕操作（透過 query param）
-st.markdown(f"""
-    <style>
-    .custom-btn {{
-        font-size: 14px;
-        padding: 0.4em 1.2em;
-        border: none;
-        border-radius: 6px;
-        background-color: #f0f2f6;
-        cursor: pointer;
-    }}
-    .logout-btn {{
-        background-color: #ffecec;
-        color: red;
-    }}
-    .btn-row {{
-        display: flex;
-        gap: 12px;
-        margin-bottom: 1rem;
-    }}
-    </style>
-    <div class="btn-row">
-        <form action="?lang=1" method="post">
-            <button class="custom-btn">{toggle_lang}</button>
-        </form>
-        <form action="?logout=1" method="post">
-            <button class="custom-btn logout-btn">{logout_label}</button>
-        </form>
-    </div>
-""", unsafe_allow_html=True)
+col1, col2 = st.columns([1, 1])
 
-# --- 處理語言切換 / 登出行為 ---
-query_params = st.query_params  # 取得 URL 參數
+with col1:
+    if st.button(toggle_lang, use_container_width=True, key="lang_button"):
+        st.session_state["language"] = toggle_lang
+        st.rerun()
 
-if "lang" in query_params:
-    st.session_state["language"] = toggle_lang
-    st.query_params.clear()  # 清掉 URL 參數避免重複觸發
-    st.rerun()
-elif "logout" in query_params:
-    st.session_state.clear()
-    st.query_params.clear()
-    st.rerun()
+with col2:
+    if st.button(logout_label, use_container_width=True, key="logout_button"):
+        st.session_state.clear()
+        st.rerun()
+
+
 
 # --- 角色與頁面標題設定 ---
 is_admin = st.session_state.get("role", "user") == "admin"
