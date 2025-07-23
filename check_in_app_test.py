@@ -128,15 +128,16 @@ st.markdown(f"""
     </div>
 """, unsafe_allow_html=True)
 
-# --- 處理點擊邏輯 ---
-query_params = st.experimental_get_query_params()
+# --- 處理語言切換 / 登出行為 ---
+query_params = st.query_params  # 取得 URL 參數
+
 if "lang" in query_params:
     st.session_state["language"] = toggle_lang
-    st.experimental_set_query_params()  # 清除 query
+    st.query_params.clear()  # 清掉 URL 參數避免重複觸發
     st.rerun()
 elif "logout" in query_params:
     st.session_state.clear()
-    st.experimental_set_query_params()
+    st.query_params.clear()
     st.rerun()
 
 # --- 角色與頁面標題設定 ---
