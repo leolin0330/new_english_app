@@ -94,12 +94,18 @@ def login_flow():
             st.rerun()
     st.stop()
 
-# --- 語言切換 ---
-col1, col3 = st.columns([11, 1])
-with col3:
+col1, col2, col3 = st.columns([1, 1, 8])
+# 語言切換
+with col1:
     toggle_lang = "English" if st.session_state["language"] == "中文" else "中文"
     if st.button(toggle_lang):
         st.session_state["language"] = toggle_lang
+        st.rerun()
+# 登出按鈕
+with col2:
+    logout_label = "🚪 登出" if st.session_state["language"] == "中文" else "🚪 Logout"
+    if st.button(logout_label):
+        st.session_state.clear()
         st.rerun()
 
 # --- 角色與頁面標題設定 ---
@@ -112,10 +118,7 @@ st.title(text[title_key])
 if not st.session_state["logged_in"]:
     login_flow()
 
-# --- 登出按鈕 ---
-if st.button("🚪 登出" if st.session_state["language"] == "中文" else "🚪 Logout"):
-    st.session_state.clear()
-    st.rerun()
+
 
 
 
