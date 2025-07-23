@@ -1,27 +1,21 @@
+options:
+  logging: CLOUD_LOGGING_ONLY
+
 steps:
   # Step 1：建構 Docker 映像檔
   - name: 'gcr.io/cloud-builders/docker'
-    args: [
-      'build', '-t', 'asia-east1-docker.pkg.dev/english-checkin/english-checkin-docker/english-checkin',
-      '.'
-    ]
-
+    args: ['build', '-t', 'asia-east1-docker.pkg.dev/你的路徑', '.']
   # Step 2：推送到 Artifact Registry
   - name: 'gcr.io/cloud-builders/docker'
-    args: [
-      'push', 'asia-east1-docker.pkg.dev/english-checkin/english-checkin-docker/english-checkin'
-    ]
-
+    args: ['push', 'asia-east1-docker.pkg.dev/你的路徑']
   # Step 3：部署到 Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'gcloud'
-    args: [
-      'run', 'deploy', 'english-checkin',
-      '--image=asia-east1-docker.pkg.dev/english-checkin/english-checkin-docker/english-checkin',
-      '--region=asia-east1',
-      '--platform=managed',
-      '--allow-unauthenticated'
-    ]
-
-images:
-  - 'asia-east1-docker.pkg.dev/english-checkin/english-checkin-docker/english-checkin'
+    args:
+      - run
+      - deploy
+      - 你的服務名稱
+      - '--image=asia-east1-docker.pkg.dev/你的路徑'
+      - '--region=asia-east1'
+      - '--platform=managed'
+      - '--allow-unauthenticated'
