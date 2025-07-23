@@ -94,17 +94,17 @@ def login_flow():
             st.rerun()
     st.stop()
 
-col1, col2 = st.columns([1, 1])
+col1, col2, col3 = st.columns([1, 1, 8])
 # 語言切換
 with col1:
     toggle_lang = "English" if st.session_state["language"] == "中文" else "中文"
-    if st.button(toggle_lang, use_container_width=True):  # 加上這個
+    if st.button(toggle_lang):
         st.session_state["language"] = toggle_lang
         st.rerun()
 # 登出按鈕
 with col2:
     logout_label = "🚪 登出" if st.session_state["language"] == "中文" else "🚪 Logout"
-    if st.button(logout_label, use_container_width=True):  # 加上這個
+    if st.button(logout_label):
         st.session_state.clear()
         st.rerun()
 
