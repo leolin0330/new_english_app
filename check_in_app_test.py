@@ -97,17 +97,48 @@ def login_flow():
 toggle_lang = "English" if st.session_state["language"] == "中文" else "中文"
 logout_label = "🚪 登出" if st.session_state["language"] == "中文" else "🚪 Logout"
 
-col1, col2, _ = st.columns([2, 2, 6])  # 👉 增加欄寬，避免換行
+col1, _ = st.columns([1, 5])  # 放在左側
 
 with col1:
-    if st.button(toggle_lang, use_container_width=True, key="lang_button"):
-        st.session_state["language"] = toggle_lang
-        st.rerun()
+    clicked = st.markdown(f"""
+        <style>
+        .btn-group {{
+            display: flex;
+            gap: 10px;
+        }}
+        .btn {{
+            padding: 6px 16px;
+            font-size: 14px;
+            border: none;
+            border-radius: 5px;
+            background-color: #f0f2f6;
+            cursor: pointer;
+        }}
+        .logout {{
+            background-color: #ffecec;
+            color: red;
+        }}
+        </style>
+        <div class="btn-group">
+            <form action="" method="get">
+                <button class="btn" name="lang" value="1" type="submit">{toggle_lang}</button>
+            </form>
+            <form action="" method="get">
+                <button class="btn logout" name="logout" value="1" type="submit">{logout_label}</button>
+            </form>
+        </div>
+    """, unsafe_allow_html=True)
 
-with col2:
-    if st.button(logout_label, use_container_width=True, key="logout_button"):
-        st.session_state.clear()
-        st.rerun()
+# ✅ URL 控制行為
+params = st.query_params
+if "lang" in params:
+    st.session_state["language"] = toggle_lang
+    st.query_params.clear()
+    st.rerun()
+elif "logout" in params:
+    st.session_state.clear()
+    st.query_params.clear()
+    st.rerun()
 
 
 
