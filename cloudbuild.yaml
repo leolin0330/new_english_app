@@ -1,0 +1,31 @@
+steps:
+  # Step 1：建構 Docker 映像檔
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'build', '-t',
+      'asia-east1-docker.pkg.dev/englissg-checkin/english-checkin-docker/english-checkin',
+      '.'
+    ]
+
+  # Step 2：推送映像檔到 Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'push',
+      'asia-east1-docker.pkg.dev/englissg-checkin/english-checkin-docker/english-checkin'
+    ]
+
+  # Step 3：部署到 Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - 'english-checkin'
+      - '--image=asia-east1-docker.pkg.dev/englissg-checkin/english-checkin-docker/english-checkin'
+      - '--region=asia-east1'
+      - '--platform=managed'
+      - '--allow-unauthenticated'
+
+# Optional：建構完成後標註映像檔
+images:
+  - 'asia-east1-docker.pkg.dev/englissg-checkin/english-checkin-docker/english-checkin'
