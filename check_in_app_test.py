@@ -94,7 +94,7 @@ def login_flow():
             st.rerun()
     st.stop()
 
-col1, col2, col3 = st.columns([1, 1, 8])
+col1, col2 = st.columns(2)
 # 語言切換
 with col1:
     toggle_lang = "English" if st.session_state["language"] == "中文" else "中文"
