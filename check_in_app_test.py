@@ -97,7 +97,7 @@ def login_flow():
 toggle_lang = "English" if st.session_state["language"] == "中文" else "中文"
 logout_label = "🚪 登出" if st.session_state["language"] == "中文" else "🚪 Logout"
 
-col1, col2 = st.columns([1, 1])
+col1, col2, _ = st.columns([2, 2, 6])  # 👉 增加欄寬，避免換行
 
 with col1:
     if st.button(toggle_lang, use_container_width=True, key="lang_button"):
@@ -108,6 +108,7 @@ with col2:
     if st.button(logout_label, use_container_width=True, key="logout_button"):
         st.session_state.clear()
         st.rerun()
+
 
 
 
