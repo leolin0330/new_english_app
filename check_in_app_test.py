@@ -69,6 +69,12 @@ def get_users_from_sheet():
         st.error(f"❌ {text.get('read_error', '無法讀取使用者資料表')}：{e}")
         return {}
 
+# --- 角色與頁面標題設定 ---
+is_admin = st.session_state.get("role", "user") == "admin"
+title_key = "title_admin" if is_admin else "title_user"
+st.set_page_config(page_title=text[title_key], page_icon="🕘")
+st.title(text[title_key])
+
 # --- 登入流程封裝 ---
 def login_flow():
     users = get_users_from_sheet()
@@ -108,12 +114,6 @@ with col3:
     if st.button(toggle_lang):
         st.session_state["language"] = toggle_lang
         st.rerun()
-
-# --- 角色與頁面標題設定 ---
-is_admin = st.session_state.get("role", "user") == "admin"
-title_key = "title_admin" if is_admin else "title_user"
-st.set_page_config(page_title=text[title_key], page_icon="🕘")
-st.title(text[title_key])
 
 # --- 功能選單 ---
 st.divider()
