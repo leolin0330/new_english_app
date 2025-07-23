@@ -94,19 +94,30 @@ def login_flow():
             st.rerun()
     st.stop()
 
-col1, col2 = st.columns(2)
-# 語言切換
+col1, col2, col3 = st.columns([1, 1, 8])
+
 with col1:
     toggle_lang = "English" if st.session_state["language"] == "中文" else "中文"
-    if st.button(toggle_lang):
+    st.markdown(
+        f"""
+        <div style='text-align: center;'>
+            <form action="" method="post">
+                <button style="width: 100%; margin-bottom: 0.25rem;" type="submit" name="lang">{toggle_lang}</button>
+            </form>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+    if "lang" in st.session_state:
         st.session_state["language"] = toggle_lang
         st.rerun()
-# 登出按鈕
+
 with col2:
     logout_label = "🚪 登出" if st.session_state["language"] == "中文" else "🚪 Logout"
     if st.button(logout_label):
         st.session_state.clear()
         st.rerun()
+
 
 # --- 角色與頁面標題設定 ---
 is_admin = st.session_state.get("role", "user") == "admin"
