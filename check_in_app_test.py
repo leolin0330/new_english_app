@@ -1,4 +1,3 @@
-# ✅ 改善後的版本（完整）
 import streamlit as st
 from datetime import datetime, timedelta
 from google.oauth2.service_account import Credentials
@@ -9,6 +8,7 @@ import json
 import requests
 from google.cloud import secretmanager
 from admin_user_management import manage_accounts
+from streamlit.components.v1 import html
 
 # --- 初始 session_state ---
 for key, value in {"language": "中文", "logged_in": False, "username": "", "role": "user"}.items():
@@ -94,17 +94,50 @@ def login_flow():
             st.rerun()
     st.stop()
 
-col1, col2 = st.columns([1, 1])
-# 語言切換
-with col1:
-    if st.button("English" if st.session_state["language"] == "中文" else "中文", use_container_width=True):
-        st.session_state["language"] = "English" if st.session_state["language"] == "中文" else "中文"
-        st.rerun()
-# 登出按鈕
-with col2:
-    if st.button("🚪 登出" if st.session_state["language"] == "中文" else "🚪 Logout", use_container_width=True):
-        st.session_state.clear()
-        st.rerun()
+toggle_lang = "English" if st.session_state["language"] == "中文" else "中文"
+logout_label = "🚪 登出" if st.session_state["language"] == "中文" else "🚪 Logout"
+
+# 以 form POST 傳遞按鈕操作（透過 query param）
+st.markdown(f"""
+    <style>
+    .custom-btn {{
+        font-size: 14px;
+        padding: 0.4em 1.2em;
+        border: none;
+        border-radius: 6px;
+        background-color: #f0f2f6;
+        cursor: pointer;
+    }}
+    .logout-btn {{
+        background-color: #ffecec;
+        color: red;
+    }}
+    .btn-row {{
+        display: flex;
+        gap: 12px;
+        margin-bottom: 1rem;
+    }}
+    </style>
+    <div class="btn-row">
+        <form action="?lang=1" method="post">
+            <button class="custom-btn">{toggle_lang}</button>
+        </form>
+        <form action="?logout=1" method="post">
+            <button class="custom-btn logout-btn">{logout_label}</button>
+        </form>
+    </div>
+""", unsafe_allow_html=True)
+
+# --- 處理點擊邏輯 ---
+query_params = st.experimental_get_query_params()
+if "lang" in query_params:
+    st.session_state["language"] = toggle_lang
+    st.experimental_set_query_params()  # 清除 query
+    st.rerun()
+elif "logout" in query_params:
+    st.session_state.clear()
+    st.experimental_set_query_params()
+    st.rerun()
 
 # --- 角色與頁面標題設定 ---
 is_admin = st.session_state.get("role", "user") == "admin"
