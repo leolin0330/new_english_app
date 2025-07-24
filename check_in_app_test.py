@@ -3,12 +3,11 @@ from datetime import datetime, timedelta
 from google.oauth2.service_account import Credentials
 import gspread
 import pandas as pd
-import io
 import json
 import requests
 from google.cloud import secretmanager
 from admin_user_management import manage_accounts
-from streamlit.components.v1 import html
+from streamlit.components.v1 import html as components_html
 
 # --- 初始 session_state ---
 for key, value in {"language": "中文", "logged_in": False, "username": "", "role": "user"}.items():
@@ -69,8 +68,6 @@ def get_users_from_sheet():
         st.error(f"❌ {text.get('read_error', '無法讀取使用者資料表')}：{e}")
         return {}
 
-
-
 # --- 登入流程封裝 ---
 def login_flow():
     users = get_users_from_sheet()
@@ -94,46 +91,62 @@ def login_flow():
             st.rerun()
     st.stop()
 
-# --- 語言與登出按鈕樣式 ---
-st.markdown("""
-    <style>
-    div.stButton > button {
-        padding: 6px 16px;
-        font-size: 14px;
-        border-radius: 8px;
-        margin-right: 10px;
-    }
-    </style>
-""", unsafe_allow_html=True)
-
+# --- 語言與登出按鈕區塊 ---
 toggle_lang = "English" if st.session_state["language"] == "中文" else "中文"
 logout_label = "🚪 登出" if st.session_state["language"] == "中文" else "🚪 Logout"
 
-col1, col2 = st.columns([1, 1])
+components_html(f"""
+    <style>
+    .top-buttons {{
+        display: flex;
+        gap: 10px;
+        margin-bottom: 10px;
+    }}
+    .top-buttons form {{ margin: 0; }}
+    .top-buttons button {{
+        padding: 6px 16px;
+        font-size: 14px;
+        border-radius: 6px;
+        border: 1px solid #ddd;
+        background-color: #f7f7f7;
+        cursor: pointer;
+    }}
+    .top-buttons button.logout {{
+        background-color: #ffecec;
+        color: red;
+        border: 1px solid #f3c2c2;
+    }}
+    </style>
+    <div class="top-buttons">
+        <form method="post">
+            <button name="action" value="toggle_lang">{toggle_lang}</button>
+        </form>
+        <form method="post">
+            <button name="action" value="logout" class="logout">{logout_label}</button>
+        </form>
+    </div>
+""", height=50)
 
-with col1:
-    if st.button(toggle_lang, key="lang_toggle"):
+# --- 按鈕處理邏輯 ---
+action = st.experimental_get_query_params().get("action", [None])[0] if "action" in st.experimental_get_query_params() else st.session_state.get("action")
+if action:
+    if action == "toggle_lang":
         st.session_state["language"] = toggle_lang
+        st.session_state.pop("action", None)
         st.rerun()
-
-with col2:
-    if st.button(logout_label, key="logout_button"):
+    elif action == "logout":
         st.session_state.clear()
         st.rerun()
+
+# --- 執行登入流程 ---
+if not st.session_state["logged_in"]:
+    login_flow()
 
 # --- 角色與頁面標題設定 ---
 is_admin = st.session_state.get("role", "user") == "admin"
 title_key = "title_admin" if is_admin else "title_user"
 st.set_page_config(page_title=text[title_key], page_icon="🕘")
 st.title(text[title_key])
-
-# --- 執行登入流程 ---
-if not st.session_state["logged_in"]:
-    login_flow()
-
-
-
-
 
 # --- 功能選單 ---
 st.divider()
