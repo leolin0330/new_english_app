@@ -14,6 +14,12 @@ for key, value in {"language": "中文", "logged_in": False, "username": "", "ro
     if key not in st.session_state:
         st.session_state[key] = value
 
+# --- 語言切換按鈕優先處理（早於語系載入）---
+if st.query_params.get("lang") == ["1"]:
+    st.session_state["language"] = "English" if st.session_state["language"] == "中文" else "中文"
+    st.query_params.clear()
+    st.rerun()
+
 # --- 快取 Secret ---
 @st.cache_resource
 def get_cached_secret(secret_id: str, version: str = "latest") -> dict:
@@ -51,6 +57,12 @@ def load_translation_json(url: str):
 lang = load_translation_json("https://raw.githubusercontent.com/leolin0330/new_english_app/main/lang_config.json")
 text = lang[st.session_state["language"]]
 
+# --- 頁面標題與 icon 設定 ---
+is_admin = st.session_state.get("role", "user") == "admin"
+title_key = "title_admin" if is_admin else "title_user"
+st.set_page_config(page_title=text[title_key], page_icon="🕘")
+st.title(text[title_key])
+
 # --- 使用者資料快取 ---
 @st.cache_data(ttl=30)
 def get_users_from_sheet():
@@ -67,12 +79,6 @@ def get_users_from_sheet():
     except Exception as e:
         st.error(f"❌ {text.get('read_error', '無法讀取使用者資料表')}：{e}")
         return {}
-
-# --- 頁面標題與 icon 設定 ---
-is_admin = st.session_state.get("role", "user") == "admin"
-title_key = "title_admin" if is_admin else "title_user"
-st.set_page_config(page_title=text[title_key], page_icon="🕘")
-st.title(text[title_key])
 
 # --- 登入流程封裝 ---
 def login_flow():
@@ -97,7 +103,7 @@ def login_flow():
             st.rerun()
     st.stop()
 
-# --- 語言切換 + 登出按鈕（橫向排列＋樣式） ---
+# --- 語言切換 + 登出按鈕 ---
 toggle_lang = "English" if st.session_state["language"] == "中文" else "中文"
 logout_label = "🚪 登出" if st.session_state["language"] == "中文" else "🚪 Logout"
 
@@ -133,13 +139,8 @@ components_html(f"""
     </div>
 """, height=70)
 
-# --- URL 控制行為 ---
-params = st.query_params
-if "lang" in params:
-    st.session_state["language"] = toggle_lang
-    st.query_params.clear()
-    st.rerun()
-elif "logout" in params:
+# --- 登出控制 ---
+if st.query_params.get("logout") == ["1"]:
     st.session_state.clear()
     st.query_params.clear()
     st.rerun()
