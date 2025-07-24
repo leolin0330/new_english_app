@@ -107,37 +107,33 @@ def login_flow():
 toggle_lang = "English" if st.session_state["language"] == "中文" else "中文"
 logout_label = "🚪 登出" if st.session_state["language"] == "中文" else "🚪 Logout"
 
-components_html(f"""
+col1, col2 = st.columns([1, 1])
+with col1:
+    if st.button(toggle_lang):
+        st.session_state["language"] = toggle_lang
+        st.rerun()
+
+with col2:
+    if st.session_state.get("logged_in") and st.button(logout_label):
+        st.session_state.clear()
+        st.rerun()
+
+# --- 美化按鈕樣式 ---
+st.markdown("""
     <style>
-    .top-buttons {{
-        display: flex;
-        gap: 10px;
-        margin-top: 10px;
-        margin-bottom: 20px;
-    }}
-    .top-buttons button {{
-        padding: 6px 16px;
-        font-size: 14px;
-        border-radius: 6px;
-        border: 1px solid #ddd;
-        background-color: #f7f7f7;
-        cursor: pointer;
-    }}
-    .top-buttons button.logout {{
-        background-color: #ffecec;
-        color: red;
-        border: 1px solid #f3c2c2;
-    }}
+    button[kind="secondary"] {
+        padding: 6px 16px !important;
+        border-radius: 6px !important;
+        margin-bottom: 4px;
+        background-color: #f4f4f4;
+        border: 1px solid #ccc;
+    }
+    button[kind="secondary"]:hover {
+        background-color: #e0e0e0;
+    }
     </style>
-    <div class="top-buttons">
-        <form action="?lang=1" method="get">
-            <button type="submit">{toggle_lang}</button>
-        </form>
-        {"" if not st.session_state.get("logged_in") else f'''<form action="?logout=1" method="get">
-            <button class="logout" type="submit">{logout_label}</button>
-        </form>'''}
-    </div>
-""", height=70)
+""", unsafe_allow_html=True)
+
 
 # --- 登出控制 ---
 if st.query_params.get("logout") == ["1"]:
