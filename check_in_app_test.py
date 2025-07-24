@@ -7,9 +7,8 @@ import json
 import requests
 from google.cloud import secretmanager
 from admin_user_management import manage_accounts
-from streamlit.components.v1 import html as components_html
 
-# --- 初始 session_state ---
+# --- 初始化狀態 ---
 for key, value in {"language": "中文", "logged_in": False, "username": "", "role": "user"}.items():
     if key not in st.session_state:
         st.session_state[key] = value
@@ -49,62 +48,25 @@ def load_translation_json(url: str):
     return requests.get(url).json()
 
 lang = load_translation_json("https://raw.githubusercontent.com/leolin0330/new_english_app/main/lang_config.json")
-
-# --- URL 控制：切換語言與登出 ---
-params = st.query_params
-if "lang" in params:
-    st.session_state["language"] = "English" if st.session_state["language"] == "中文" else "中文"
-    st.query_params.clear()
-    st.rerun()
-elif "logout" in params:
-    st.session_state.clear()
-    st.query_params.clear()
-    st.rerun()
-
-# --- 套用語系字典 ---
 text = lang[st.session_state["language"]]
 
-# --- 頁面標題與 icon 設定 ---
-is_admin = st.session_state.get("role", "user") == "admin"
-title_key = "title_admin" if is_admin else "title_user"
-st.set_page_config(page_title=text[title_key], page_icon="🕘")
-st.title(text[title_key])
+# --- 頁面設定與標題 ---
+st.set_page_config(page_title=text["title_admin"], page_icon="🕘")
+st.title(text["title_admin"])
 
-# --- 語言切換 + 登出按鈕（橫向排版穩定樣式） ---
+# --- 語言與登出按鈕 ---
 toggle_lang = "English" if st.session_state["language"] == "中文" else "中文"
 logout_label = "🚪 登出" if st.session_state["language"] == "中文" else "🚪 Logout"
 
-components_html(f"""
-    <style>
-    .top-buttons {{
-        display: flex;
-        gap: 10px;
-        margin-top: 5px;
-        margin-bottom: 20px;
-    }}
-    .top-buttons button {{
-        padding: 6px 16px;
-        font-size: 14px;
-        border-radius: 6px;
-        border: 1px solid #ccc;
-        background-color: #f4f4f4;
-        cursor: pointer;
-    }}
-    .top-buttons button.logout {{
-        background-color: #ffecec;
-        color: red;
-        border: 1px solid #f3c2c2;
-    }}
-    </style>
-    <div class="top-buttons">
-        <form method="get">
-            <button name="lang" value="1" type="submit">{toggle_lang}</button>
-        </form>
-        {f'''<form method="get">
-            <button name="logout" value="1" type="submit" class="logout">{logout_label}</button>
-        </form>''' if st.session_state.get("logged_in") else ""}
-    </div>
-""", height=70)
+col1, col2 = st.columns([1, 1])
+with col1:
+    if st.button(toggle_lang):
+        st.session_state["language"] = toggle_lang
+        st.rerun()
+with col2:
+    if st.button(logout_label):
+        st.session_state.clear()
+        st.rerun()
 
 # --- 使用者資料快取 ---
 @st.cache_data(ttl=30)
@@ -123,7 +85,7 @@ def get_users_from_sheet():
         st.error(f"❌ {text.get('read_error', '無法讀取使用者資料表')}：{e}")
         return {}
 
-# --- 登入流程封裝 ---
+# --- 登入流程 ---
 def login_flow():
     users = get_users_from_sheet()
     username = st.text_input(text["username"])
@@ -146,7 +108,7 @@ def login_flow():
             st.rerun()
     st.stop()
 
-# --- 執行登入流程 ---
+# --- 若未登入則顯示登入畫面 ---
 if not st.session_state["logged_in"]:
     login_flow()
 
@@ -155,6 +117,7 @@ st.divider()
 st.markdown("### " + text["main_menu_title"])
 
 # --- 管理者功能 ---
+is_admin = st.session_state.get("role") == "admin"
 if is_admin:
     menu_keys = text["admin_menu_keys"]
     if "admin_option_key" not in st.session_state:
