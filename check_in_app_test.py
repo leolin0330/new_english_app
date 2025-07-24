@@ -7,7 +7,6 @@ import json
 import requests
 from google.cloud import secretmanager
 from admin_user_management import manage_accounts
-from streamlit.components.v1 import html as components_html
 
 # --- 初始 session_state ---
 for key, value in {"language": "中文", "logged_in": False, "username": "", "role": "user"}.items():
@@ -68,6 +67,12 @@ def get_users_from_sheet():
         st.error(f"❌ {text.get('read_error', '無法讀取使用者資料表')}：{e}")
         return {}
 
+# --- 頁面標題與 icon 設定 ---
+is_admin = st.session_state.get("role", "user") == "admin"
+title_key = "title_admin" if is_admin else "title_user"
+st.set_page_config(page_title=text[title_key], page_icon="🕘")
+st.title(text[title_key])
+
 # --- 登入流程封裝 ---
 def login_flow():
     users = get_users_from_sheet()
@@ -91,29 +96,39 @@ def login_flow():
             st.rerun()
     st.stop()
 
-# --- 語言與登出按鈕區塊 ---
+# --- 自訂語言與登出按鈕（橫向） ---
 toggle_lang = "English" if st.session_state["language"] == "中文" else "中文"
 logout_label = "🚪 登出" if st.session_state["language"] == "中文" else "🚪 Logout"
 
-col1, col2 = st.columns([1, 1])
+col1, col2, _ = st.columns([1, 1, 8])
 with col1:
-    if st.button(toggle_lang, key="lang_toggle"):
+    if st.button(toggle_lang):
         st.session_state["language"] = toggle_lang
         st.rerun()
 with col2:
-    if st.button(logout_label, key="logout_button"):
+    if st.session_state.get("logged_in") and st.button(logout_label):
         st.session_state.clear()
         st.rerun()
+
+# --- 美化按鈕樣式 ---
+st.markdown("""
+    <style>
+    button[kind="secondary"] {
+        padding: 6px 16px !important;
+        border-radius: 6px !important;
+        margin-bottom: 4px;
+        background-color: #f4f4f4;
+        border: 1px solid #ccc;
+    }
+    button[kind="secondary"]:hover {
+        background-color: #e0e0e0;
+    }
+    </style>
+""", unsafe_allow_html=True)
 
 # --- 執行登入流程 ---
 if not st.session_state["logged_in"]:
     login_flow()
-
-# --- 角色與頁面標題設定 ---
-is_admin = st.session_state.get("role", "user") == "admin"
-title_key = "title_admin" if is_admin else "title_user"
-st.set_page_config(page_title=text[title_key], page_icon="🕘")
-st.title(text[title_key])
 
 # --- 功能選單 ---
 st.divider()
