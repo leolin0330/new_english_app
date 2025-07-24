@@ -128,7 +128,7 @@ components_html(f"""
 """, height=50)
 
 # --- 按鈕處理邏輯 ---
-action = st.experimental_get_query_params().get("action", [None])[0] if "action" in st.experimental_get_query_params() else st.session_state.get("action")
+action = st.query_params.get("action", [None])[0] if "action" in st.query_params else st.session_state.get("action")
 if action:
     if action == "toggle_lang":
         st.session_state["language"] = toggle_lang
