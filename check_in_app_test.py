@@ -94,54 +94,32 @@ def login_flow():
             st.rerun()
     st.stop()
 
+# --- 語言與登出按鈕樣式 ---
+st.markdown("""
+    <style>
+    div.stButton > button {
+        padding: 6px 16px;
+        font-size: 14px;
+        border-radius: 8px;
+        margin-right: 10px;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
 toggle_lang = "English" if st.session_state["language"] == "中文" else "中文"
 logout_label = "🚪 登出" if st.session_state["language"] == "中文" else "🚪 Logout"
 
-col1, _ = st.columns([1, 5])  # 放在左側
+col1, col2 = st.columns([1, 1])
 
 with col1:
-    clicked = st.markdown(f"""
-        <style>
-        .btn-group {{
-            display: flex;
-            gap: 10px;
-        }}
-        .btn {{
-            padding: 6px 16px;
-            font-size: 14px;
-            border: none;
-            border-radius: 5px;
-            background-color: #f0f2f6;
-            cursor: pointer;
-        }}
-        .logout {{
-            background-color: #ffecec;
-            color: red;
-        }}
-        </style>
-        <div class="btn-group">
-            <form action="" method="get">
-                <button class="btn" name="lang" value="1" type="submit">{toggle_lang}</button>
-            </form>
-            <form action="" method="get">
-                <button class="btn logout" name="logout" value="1" type="submit">{logout_label}</button>
-            </form>
-        </div>
-    """, unsafe_allow_html=True)
+    if st.button(toggle_lang, key="lang_toggle"):
+        st.session_state["language"] = toggle_lang
+        st.rerun()
 
-# ✅ URL 控制行為
-params = st.query_params
-if "lang" in params:
-    st.session_state["language"] = toggle_lang
-    st.query_params.clear()
-    st.rerun()
-elif "logout" in params:
-    st.session_state.clear()
-    st.query_params.clear()
-    st.rerun()
-
-
-
+with col2:
+    if st.button(logout_label, key="logout_button"):
+        st.session_state.clear()
+        st.rerun()
 
 # --- 角色與頁面標題設定 ---
 is_admin = st.session_state.get("role", "user") == "admin"
