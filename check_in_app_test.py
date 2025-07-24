@@ -95,46 +95,13 @@ def login_flow():
 toggle_lang = "English" if st.session_state["language"] == "中文" else "中文"
 logout_label = "🚪 登出" if st.session_state["language"] == "中文" else "🚪 Logout"
 
-components_html(f"""
-    <style>
-    .top-buttons {{
-        display: flex;
-        gap: 10px;
-        margin-bottom: 10px;
-    }}
-    .top-buttons form {{ margin: 0; }}
-    .top-buttons button {{
-        padding: 6px 16px;
-        font-size: 14px;
-        border-radius: 6px;
-        border: 1px solid #ddd;
-        background-color: #f7f7f7;
-        cursor: pointer;
-    }}
-    .top-buttons button.logout {{
-        background-color: #ffecec;
-        color: red;
-        border: 1px solid #f3c2c2;
-    }}
-    </style>
-    <div class="top-buttons">
-        <form method="post">
-            <button name="action" value="toggle_lang">{toggle_lang}</button>
-        </form>
-        <form method="post">
-            <button name="action" value="logout" class="logout">{logout_label}</button>
-        </form>
-    </div>
-""", height=50)
-
-# --- 按鈕處理邏輯 ---
-action = st.query_params.get("action", [None])[0] if "action" in st.query_params else st.session_state.get("action")
-if action:
-    if action == "toggle_lang":
+col1, col2 = st.columns([1, 1])
+with col1:
+    if st.button(toggle_lang, key="lang_toggle"):
         st.session_state["language"] = toggle_lang
-        st.session_state.pop("action", None)
         st.rerun()
-    elif action == "logout":
+with col2:
+    if st.button(logout_label, key="logout_button"):
         st.session_state.clear()
         st.rerun()
 
