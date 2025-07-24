@@ -14,12 +14,6 @@ for key, value in {"language": "中文", "logged_in": False, "username": "", "ro
     if key not in st.session_state:
         st.session_state[key] = value
 
-# --- 語言切換按鈕優先處理（早於語系載入）---
-if st.query_params.get("lang") == ["1"]:
-    st.session_state["language"] = "English" if st.session_state["language"] == "中文" else "中文"
-    st.query_params.clear()
-    st.rerun()
-
 # --- 快取 Secret ---
 @st.cache_resource
 def get_cached_secret(secret_id: str, version: str = "latest") -> dict:
@@ -55,6 +49,19 @@ def load_translation_json(url: str):
     return requests.get(url).json()
 
 lang = load_translation_json("https://raw.githubusercontent.com/leolin0330/new_english_app/main/lang_config.json")
+
+# --- URL 控制：切換語言與登出 ---
+params = st.query_params
+if "lang" in params:
+    st.session_state["language"] = "English" if st.session_state["language"] == "中文" else "中文"
+    st.query_params.clear()
+    st.rerun()
+elif "logout" in params:
+    st.session_state.clear()
+    st.query_params.clear()
+    st.rerun()
+
+# --- 套用語系字典 ---
 text = lang[st.session_state["language"]]
 
 # --- 頁面標題與 icon 設定 ---
@@ -62,6 +69,42 @@ is_admin = st.session_state.get("role", "user") == "admin"
 title_key = "title_admin" if is_admin else "title_user"
 st.set_page_config(page_title=text[title_key], page_icon="🕘")
 st.title(text[title_key])
+
+# --- 語言切換 + 登出按鈕（橫向排版穩定樣式） ---
+toggle_lang = "English" if st.session_state["language"] == "中文" else "中文"
+logout_label = "🚪 登出" if st.session_state["language"] == "中文" else "🚪 Logout"
+
+components_html(f"""
+    <style>
+    .top-buttons {{
+        display: flex;
+        gap: 10px;
+        margin-top: 5px;
+        margin-bottom: 20px;
+    }}
+    .top-buttons button {{
+        padding: 6px 16px;
+        font-size: 14px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        background-color: #f4f4f4;
+        cursor: pointer;
+    }}
+    .top-buttons button.logout {{
+        background-color: #ffecec;
+        color: red;
+        border: 1px solid #f3c2c2;
+    }}
+    </style>
+    <div class="top-buttons">
+        <form method="get">
+            <button name="lang" value="1" type="submit">{toggle_lang}</button>
+        </form>
+        {f'''<form method="get">
+            <button name="logout" value="1" type="submit" class="logout">{logout_label}</button>
+        </form>''' if st.session_state.get("logged_in") else ""}
+    </div>
+""", height=70)
 
 # --- 使用者資料快取 ---
 @st.cache_data(ttl=30)
@@ -102,44 +145,6 @@ def login_flow():
             st.toast(text["login_success"], icon="✅")
             st.rerun()
     st.stop()
-
-# --- 語言切換 + 登出按鈕 ---
-toggle_lang = "English" if st.session_state["language"] == "中文" else "中文"
-logout_label = "🚪 登出" if st.session_state["language"] == "中文" else "🚪 Logout"
-
-col1, col2 = st.columns([1, 1])
-with col1:
-    if st.button(toggle_lang):
-        st.session_state["language"] = toggle_lang
-        st.rerun()
-
-with col2:
-    if st.session_state.get("logged_in") and st.button(logout_label):
-        st.session_state.clear()
-        st.rerun()
-
-# --- 美化按鈕樣式 ---
-st.markdown("""
-    <style>
-    button[kind="secondary"] {
-        padding: 6px 16px !important;
-        border-radius: 6px !important;
-        margin-bottom: 4px;
-        background-color: #f4f4f4;
-        border: 1px solid #ccc;
-    }
-    button[kind="secondary"]:hover {
-        background-color: #e0e0e0;
-    }
-    </style>
-""", unsafe_allow_html=True)
-
-
-# --- 登出控制 ---
-if st.query_params.get("logout") == ["1"]:
-    st.session_state.clear()
-    st.query_params.clear()
-    st.rerun()
 
 # --- 執行登入流程 ---
 if not st.session_state["logged_in"]:
